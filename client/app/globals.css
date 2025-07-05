@@ -196,3 +196,11 @@
   background-color: rgba(255,255,255,0.1) !important;
   color: #fff !important;
 }
+
+.cancel-gradient-btn {
+  @apply transition-all;
+}
+.cancel-gradient-btn:hover {
+  background: linear-gradient(to right, #10b981, #2dd4bf) !important;
+  color: #fff !important;
+}

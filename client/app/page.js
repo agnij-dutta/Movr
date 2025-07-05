@@ -291,10 +291,6 @@ export default function MovrLanding() {
               </>
             )}
           </div>
-          {/* Wallet Address Display - Top Right */}
-          <div className="absolute top-6 right-8 z-30">
-            <WalletAddressButton account={account} disconnect={disconnect} connected={connected} />
-          </div>
         </div>
       </header>
 
