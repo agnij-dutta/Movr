@@ -13,6 +13,7 @@ import { useAptosEndorse } from "@/lib/hooks/useAptosEndorse";
 import { useAptosTip } from "@/lib/hooks/useAptosTip";
 import { downloadFile } from "@/lib/ipfs";
 import { getAllPackages } from "@/lib/aptos";
+import JSZip from "jszip";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -42,6 +43,9 @@ export default function PackageDetails() {
   const [metadata, setMetadata] = useState(null);
   const [metaLoading, setMetaLoading] = useState(false);
   const [metaError, setMetaError] = useState(null);
+
+  // Add state for Move source code
+  const [moveSourceCode, setMoveSourceCode] = useState("");
 
   // Fetch package metadata and IPFS content
   useEffect(() => {
@@ -82,15 +86,33 @@ export default function PackageDetails() {
     setIpfsError(null);
     (async () => {
       try {
-        // Try to fetch README.md and code example from IPFS directory
-        const readmeBlob = await downloadFile(`${metadata.ipfsHash}/README.md`);
-        const readmeText = await readmeBlob.text();
-        setReadmeContent(readmeText);
-        // Try to fetch code example (optional)
+        // Download the ZIP as an ArrayBuffer from IPFS
+        const res = await fetch(`https://aquamarine-defiant-woodpecker-351.mypinata.cloud/ipfs/${metadata.ipfsHash}`);
+        if (!res.ok) throw new Error("Failed to fetch ZIP from IPFS");
+        const arrayBuffer = await res.arrayBuffer();
+        // Load the ZIP
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        // Extract README.md
+        let readmeText = "";
         try {
-          const codeBlob = await downloadFile(`${metadata.ipfsHash}/example.js`);
-          setCodeExample(await codeBlob.text());
-        } catch { setCodeExample(""); }
+          readmeText = await zip.file("README.md").async("string");
+        } catch { readmeText = ""; }
+        setReadmeContent(readmeText);
+        // Try to extract Move source file (e.g., sources/<package>.move)
+        let moveText = "";
+        try {
+          const moveFileName = `sources/${metadata.name}.move`;
+          if (zip.file(moveFileName)) {
+            moveText = await zip.file(moveFileName).async("string");
+          }
+        } catch { moveText = ""; }
+        setMoveSourceCode(moveText);
+        // Extract code example (optional)
+        let codeText = "";
+        try {
+          codeText = await zip.file("example.js").async("string");
+        } catch { codeText = ""; }
+        setCodeExample(codeText);
       } catch (e) {
         setIpfsError(e);
         setReadmeContent("");
@@ -275,10 +297,10 @@ export default function PackageDetails() {
             <div className="relative z-30 space-y-8 p-6">
               <div>
                 <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  a JavaScript idiomatic {packageInfo.name}
+                 {packageInfo.name}
                 </h2>
                 <p className="text-xl text-[#B0B0B0] mb-6">
-                  interface for inversion-of-control
+                  {packageInfo.description}
                 </p>
               </div>
 
@@ -286,7 +308,7 @@ export default function PackageDetails() {
               <div>
                 <h3 className="text-xl font-extrabold text-white uppercase mb-4">Installation</h3>
                 <div className="bg-[#1A1A1A] rounded-lg p-4 flex justify-between items-center">
-                  <code className="text-white font-mono">npm install {packageInfo.name}</code>
+                  <code className="text-white font-mono">movr install {packageInfo.name}</code>
                   <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
                     <Copy size={16} />
                   </Button>
@@ -294,24 +316,22 @@ export default function PackageDetails() {
               </div>
 
               {/* Example Usage */}
-              <div>
-                <h3 className="text-xl font-extrabold text-white uppercase mb-4">Example Usage</h3>
+              {activeTab === "code" && (
                 <div className="bg-[#1A1A1A] rounded-lg p-4">
-                  <div className="mb-2 text-[#B0B0B0]">in JavaScript</div>
                   <pre className="text-white font-mono text-sm overflow-x-auto">
-                    {codeExample || "No code example found."}
+                    {moveSourceCode || codeExample || "No Move source or code example found."}
                   </pre>
                 </div>
-              </div>
+              )}
 
               {/* README content */}
-              <div>
+              {activeTab === "readme" && (
                 <div className="prose prose-invert max-w-none">
                   <pre className="whitespace-pre-wrap text-[#B0B0B0] text-sm">
                     {readmeContent || "No README found."}
                   </pre>
                 </div>
-              </div>
+              )}
             </div>
           </Card>
         </motion.div>
@@ -334,7 +354,7 @@ export default function PackageDetails() {
               </CardHeader>
               <CardContent className="pb-6">
                 <div className="bg-[#1A1A1A] rounded-lg p-3 flex justify-between items-center">
-                  <code className="text-white font-mono text-sm">npm i {packageInfo.name}</code>
+                  <code className="text-white font-mono text-sm">movr install {packageInfo.name}</code>
                   <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
                     <Copy size={16} />
                   </Button>
