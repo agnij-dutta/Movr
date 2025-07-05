@@ -154,7 +154,7 @@ export default function Dashboard() {
       {/* Upload Package Button - Top Left */}
       <div className="absolute top-6 left-8 z-20 flex items-center gap-2">
         <Link href="/upload">
-          <Button variant="ghost" className="text-white hover:bg-white hover:text-black flex items-center gap-2">
+          <Button variant="ghost" className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2">
             <Upload size={18} className="mr-1" /> Upload Package
           </Button>
         </Link>

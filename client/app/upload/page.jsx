@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, ArrowLeft, ArrowRight, Image, FileVideo } from "lucide-react";
+import { Upload, ArrowLeft, ArrowRight, Image, FileVideo, FileText, CheckCircle } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Link from "next/link";
@@ -11,8 +11,8 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 const steps = [
   { label: "Upload file", icon: Upload },
-  { label: "Add details", icon: ArrowRight },
-  { label: "Review & upload", icon: ArrowRight },
+  { label: "Add details", icon: FileText },
+  { label: "Review & upload", icon: CheckCircle },
 ];
 
 const exampleTags = [
@@ -144,7 +144,7 @@ export default function UploadPage() {
       {/* Dashboard Back Button - Top Left */}
       <div className="absolute top-6 left-8 z-20 flex items-center gap-2">
         <Link href="/dashboard">
-          <Button variant="ghost" className="text-white hover:bg-white hover:text-black flex items-center gap-2">
+          <Button variant="ghost" className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2">
             <ArrowLeft size={18} className="mr-1" /> Dashboard
           </Button>
         </Link>
