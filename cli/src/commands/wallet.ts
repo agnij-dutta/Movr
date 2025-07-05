@@ -28,7 +28,7 @@ export class WalletCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('wallet')
-      .description('Manage wallets');
+      .description('Manage wallets for movr');
 
     this.program
       .command('create')

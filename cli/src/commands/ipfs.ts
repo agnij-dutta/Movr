@@ -23,7 +23,7 @@ export class IPFSCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('ipfs')
-      .description('IPFS operations');
+      .description('IPFS operations for movr');
 
     this.program
       .command('upload')

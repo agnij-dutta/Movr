@@ -31,7 +31,7 @@ export class SearchCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('search')
-      .description('Search for Move packages')
+      .description('Search for Move packages in movr')
       .argument('<query>', 'Search query')
       .option('-t, --package-type <type>', 'Filter by package type (library, template)')
       .option('-e, --min-endorsements <count>', 'Filter by minimum endorsements')

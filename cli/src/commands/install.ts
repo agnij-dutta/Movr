@@ -33,7 +33,7 @@ export class InstallCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('install')
-      .description('Install a Move package from APM')
+      .description('Install a Move package from movr')
       .argument('<name>', 'Package name to install')
       .option('-v, --version <version>', 'Package version')
       .option('-o, --output-dir <dir>', 'Output directory')
