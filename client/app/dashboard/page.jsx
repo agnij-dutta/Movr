@@ -415,7 +415,10 @@ export default function Dashboard() {
                       transition={{ duration: 0.3 }}
                     >
                       <p className="text-[#B0B0B0] text-sm">Total Packages</p>
-                      <p className="text-2xl font-bold text-white mt-1">{stats.totalPackages}</p>
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="text-5xl font-extrabold text-[#d6ff4b]">{stats.totalPackages}</span>
+                        <span className="text-lg font-semibold text-[#b0b0b0]">Packages</span>
+                      </div>
                     </motion.div>
                     <motion.div 
                       className="bg-[#1A1A1A] p-4 rounded-lg"

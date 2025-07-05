@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
+import JSZip from "jszip";
 
 const mainVariant = {
   initial: {
@@ -29,11 +30,51 @@ export const FileUpload = ({
   onChange
 }) => {
   const [files, setFiles] = useState([]);
+  const [zipFile, setZipFile] = useState(null);
+  const [moveToml, setMoveToml] = useState("");
+  const [packageName, setPackageName] = useState("");
+  const [version, setVersion] = useState("");
+  const [error, setError] = useState("");
   const fileInputRef = useRef(null);
 
-  const handleFileChange = (newFiles) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    onChange && onChange(newFiles);
+  // Helper: recursively add files to JSZip
+  const addFilesToZip = async (zip, fileList) => {
+    for (const file of fileList) {
+      // file.webkitRelativePath preserves folder structure
+      zip.file(file.webkitRelativePath, await file.arrayBuffer());
+    }
+  };
+
+  const handleFolderChange = async (e) => {
+    const fileList = Array.from(e.target.files || []);
+    setFiles(fileList);
+    setError("");
+    setZipFile(null);
+    setMoveToml("");
+    setPackageName("");
+    setVersion("");
+    if (!fileList.length) return;
+    try {
+      const zip = new JSZip();
+      await addFilesToZip(zip, fileList);
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      setZipFile(zipBlob);
+      // Extract Move.toml
+      const moveTomlFile = fileList.find(f => f.webkitRelativePath.endsWith("Move.toml"));
+      if (moveTomlFile) {
+        const moveTomlText = await moveTomlFile.text();
+        setMoveToml(moveTomlText);
+        const nameMatch = moveTomlText.match(/name\s*=\s*"([^"]+)"/);
+        if (nameMatch) setPackageName(nameMatch[1]);
+        const versionMatch = moveTomlText.match(/version\s*=\s*"([^"]+)"/);
+        if (versionMatch) setVersion(versionMatch[1]);
+      } else {
+        setError("Move.toml not found in folder");
+      }
+      onChange && onChange({ zipFile: zipBlob, moveToml, packageName, version, files: fileList });
+    } catch (err) {
+      setError("Failed to zip folder or extract Move.toml");
+    }
   };
 
   const handleClick = () => {
@@ -43,7 +84,7 @@ export const FileUpload = ({
   const { getRootProps, isDragActive } = useDropzone({
     multiple: false,
     noClick: true,
-    onDrop: handleFileChange,
+    onDrop: handleFolderChange,
     onDropRejected: (error) => {
       console.log(error);
     },
@@ -59,7 +100,10 @@ export const FileUpload = ({
           ref={fileInputRef}
           id="file-upload-handle"
           type="file"
-          onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
+          webkitdirectory="true"
+          directory="true"
+          multiple
+          onChange={handleFolderChange}
           className="hidden" />
         <div
           className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
@@ -149,6 +193,17 @@ export const FileUpload = ({
               <motion.div
                 variants={secondaryVariant}
                 className="absolute opacity-0 border border-dashed border-sky-400 inset-0 z-30 bg-transparent flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md"></motion.div>
+            )}
+
+            {/* Show extracted metadata or error */}
+            {moveToml && (
+              <div className="mt-4 p-2 bg-neutral-900 rounded text-sm text-neutral-200">
+                <div><b>Package Name:</b> {packageName || "-"}</div>
+                <div><b>Version:</b> {version || "-"}</div>
+              </div>
+            )}
+            {error && (
+              <div className="mt-4 p-2 bg-red-900 rounded text-sm text-red-200">{error}</div>
             )}
           </div>
         </div>
