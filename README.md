@@ -1,12 +1,12 @@
-# APM: Aptos Package Manager & Registry
+# Movr: Aptos Package Manager & Registry
 
-APM is a decentralized, on-chain package registry for the Move ecosystem on the Aptos blockchain. Inspired by `npm`, `crates.io`, and OpenZeppelin.
+Movr is a decentralized, on-chain package registry for the Move ecosystem on the Aptos blockchain. Inspired by `npm`, `crates.io`, and OpenZeppelin.
 
 > "Discover. Trust. Compose. Build Faster on Aptos."
 
 ## ✨ Overview
 
-APM enables Move developers to:
+Movr enables Move developers to:
 
 * Register Move packages & templates with metadata & version control
 * Add security through validators called **endorsers**
@@ -16,7 +16,7 @@ APM enables Move developers to:
 
 ## 🔧 Project Structure
 
-APM consists of two main components:
+Movr consists of two main components:
 
 1. **Smart Contracts (`web3/`)**: Move contracts that power the on-chain registry
 2. **CLI Tool (`cli/`)**: Rust-based command line interface for interacting with the registry
@@ -35,9 +35,9 @@ The smart contracts provide the core functionality:
 ```
 web3/
 ├── sources/
-│   └── apm_registry.move    # Core registry contract
+│   └── Movr_registry.move    # Core registry contract
 └── tests/                  
-    └── apm_registry_tests.move  # Comprehensive test suite
+    └── Movr_registry_tests.move  # Comprehensive test suite
 ```
 
 ### Key Features
@@ -48,7 +48,7 @@ web3/
 
 ## 🛠️ CLI Tool
 
-The CLI tool provides an easy way to interact with the APM registry:
+The CLI tool provides an easy way to interact with the Movr registry:
 
 ```
 cli/
@@ -132,7 +132,7 @@ The Move contracts are located in the `web3/` directory. You can:
 1. Examine the contract code
 2. Run tests: `cd web3 && aptos move test`
 3. Compile: `cd web3 && aptos move compile`
-4. Deploy: Use the APM CLI or Aptos CLI
+4. Deploy: Use the Movr CLI or Aptos CLI
 
 ## 📜 License
 
