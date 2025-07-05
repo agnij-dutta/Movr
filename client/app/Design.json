@@ -1,0 +1,353 @@
+{
+    "designSystem": {
+      "name": "Modern Dashboard Design System",
+      "version": "1.0.0",
+      "description": "A comprehensive design system for creating modern, dark-themed dashboard interfaces with card-based layouts and data visualization components"
+    },
+    "colorPalette": {
+      "primary": {
+        "background": "#0A0A0A",
+        "surface": "#1A1A1A",
+        "cardBackground": "#2A2A2A",
+        "text": "#FFFFFF",
+        "textSecondary": "#B0B0B0",
+        "textMuted": "#808080"
+      },
+      "accent": {
+        "green": "#4ADE80",
+        "orange": "#FB923C",
+        "blue": "#3B82F6",
+        "yellow": "#FDE047",
+        "red": "#EF4444",
+        "purple": "#A855F7"
+      },
+      "status": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      }
+    },
+    "typography": {
+      "fontFamilies": {
+        "primary": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "mono": "JetBrains Mono, 'Fira Code', Consolas, monospace"
+      },
+      "fontSizes": {
+        "xs": "0.75rem",
+        "sm": "0.875rem",
+        "base": "1rem",
+        "lg": "1.125rem",
+        "xl": "1.25rem",
+        "2xl": "1.5rem",
+        "3xl": "1.875rem",
+        "4xl": "2.25rem"
+      },
+      "fontWeights": {
+        "normal": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700",
+        "extrabold": "800"
+      }
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px",
+      "2xl": "48px",
+      "3xl": "64px"
+    },
+    "borderRadius": {
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "2xl": "24px",
+      "full": "9999px"
+    },
+    "shadows": {
+      "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+      "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+    },
+    "components": {
+      "layout": {
+        "sidebar": {
+          "width": "64px",
+          "backgroundColor": "primary.surface",
+          "borderRadius": "none",
+          "padding": "lg",
+          "iconSize": "24px",
+          "gap": "lg"
+        },
+        "header": {
+          "height": "64px",
+          "backgroundColor": "primary.surface",
+          "padding": "md lg",
+          "borderRadius": "none",
+          "justifyContent": "space-between"
+        },
+        "main": {
+          "backgroundColor": "primary.background",
+          "padding": "lg",
+          "gap": "lg"
+        }
+      },
+      "card": {
+        "base": {
+          "backgroundColor": "primary.cardBackground",
+          "borderRadius": "xl",
+          "padding": "xl",
+          "boxShadow": "lg",
+          "border": "none"
+        },
+        "header": {
+          "marginBottom": "lg",
+          "display": "flex",
+          "justifyContent": "space-between",
+          "alignItems": "center"
+        },
+        "title": {
+          "fontSize": "lg",
+          "fontWeight": "semibold",
+          "color": "primary.text",
+          "textTransform": "uppercase",
+          "letterSpacing": "0.05em"
+        }
+      },
+      "metrics": {
+        "container": {
+          "display": "grid",
+          "gridTemplateColumns": "repeat(auto-fit, minmax(120px, 1fr))",
+          "gap": "lg"
+        },
+        "item": {
+          "textAlign": "center"
+        },
+        "value": {
+          "fontSize": "3xl",
+          "fontWeight": "bold",
+          "color": "primary.text",
+          "marginBottom": "xs"
+        },
+        "label": {
+          "fontSize": "sm",
+          "color": "primary.textSecondary",
+          "textTransform": "capitalize"
+        },
+        "indicator": {
+          "width": "8px",
+          "height": "8px",
+          "borderRadius": "full",
+          "marginBottom": "xs"
+        }
+      },
+      "buttons": {
+        "primary": {
+          "backgroundColor": "accent.blue",
+          "color": "primary.text",
+          "borderRadius": "md",
+          "padding": "sm md",
+          "fontSize": "sm",
+          "fontWeight": "medium",
+          "border": "none",
+          "cursor": "pointer"
+        },
+        "secondary": {
+          "backgroundColor": "primary.surface",
+          "color": "primary.text",
+          "borderRadius": "md",
+          "padding": "sm md",
+          "fontSize": "sm",
+          "fontWeight": "medium",
+          "border": "1px solid rgba(255, 255, 255, 0.1)",
+          "cursor": "pointer"
+        },
+        "icon": {
+          "width": "32px",
+          "height": "32px",
+          "borderRadius": "md",
+          "backgroundColor": "primary.surface",
+          "border": "none",
+          "cursor": "pointer",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "center"
+        }
+      },
+      "filters": {
+        "container": {
+          "display": "flex",
+          "gap": "md",
+          "alignItems": "center",
+          "marginBottom": "lg"
+        },
+        "dropdown": {
+          "backgroundColor": "primary.surface",
+          "borderRadius": "md",
+          "padding": "sm md",
+          "fontSize": "sm",
+          "color": "primary.text",
+          "border": "1px solid rgba(255, 255, 255, 0.1)",
+          "minWidth": "120px"
+        }
+      },
+      "charts": {
+        "lineChart": {
+          "strokeWidth": "2px",
+          "gridColor": "rgba(255, 255, 255, 0.1)",
+          "textColor": "primary.textSecondary",
+          "height": "200px"
+        },
+        "dotMatrix": {
+          "dotSize": "8px",
+          "dotSpacing": "4px",
+          "gridColumns": "auto-fit",
+          "height": "200px"
+        },
+        "bubbleChart": {
+          "minBubbleSize": "32px",
+          "maxBubbleSize": "64px",
+          "labelFontSize": "sm",
+          "labelColor": "primary.text",
+          "height": "300px"
+        }
+      },
+      "timeline": {
+        "container": {
+          "position": "relative",
+          "paddingLeft": "md"
+        },
+        "item": {
+          "display": "flex",
+          "alignItems": "center",
+          "marginBottom": "md",
+          "padding": "sm md",
+          "borderRadius": "full",
+          "minHeight": "40px"
+        },
+        "avatar": {
+          "width": "24px",
+          "height": "24px",
+          "borderRadius": "full",
+          "marginRight": "sm"
+        },
+        "label": {
+          "fontSize": "sm",
+          "color": "primary.text",
+          "fontWeight": "medium"
+        },
+        "value": {
+          "fontSize": "sm",
+          "color": "primary.textSecondary",
+          "marginLeft": "auto"
+        }
+      },
+      "avatars": {
+        "single": {
+          "width": "32px",
+          "height": "32px",
+          "borderRadius": "full",
+          "border": "2px solid rgba(255, 255, 255, 0.2)"
+        },
+        "group": {
+          "display": "flex",
+          "marginLeft": "-8px"
+        }
+      },
+      "badges": {
+        "count": {
+          "backgroundColor": "accent.red",
+          "color": "primary.text",
+          "borderRadius": "full",
+          "padding": "2px 6px",
+          "fontSize": "xs",
+          "fontWeight": "medium",
+          "minWidth": "20px",
+          "textAlign": "center"
+        }
+      }
+    },
+    "layoutPatterns": {
+      "dashboardGrid": {
+        "display": "grid",
+        "gridTemplateColumns": "repeat(auto-fit, minmax(300px, 1fr))",
+        "gap": "lg",
+        "padding": "lg"
+      },
+      "cardLayout": {
+        "display": "flex",
+        "flexDirection": "column",
+        "height": "100%",
+        "minHeight": "300px"
+      },
+      "headerActions": {
+        "display": "flex",
+        "alignItems": "center",
+        "gap": "md"
+      },
+      "metricGrid": {
+        "display": "grid",
+        "gridTemplateColumns": "repeat(auto-fit, minmax(100px, 1fr))",
+        "gap": "md",
+        "marginBottom": "lg"
+      }
+    },
+    "animations": {
+      "transitions": {
+        "default": "all 0.2s ease-in-out",
+        "fast": "all 0.1s ease-in-out",
+        "slow": "all 0.3s ease-in-out"
+      },
+      "hover": {
+        "scale": "1.02",
+        "brightness": "1.1",
+        "opacity": "0.8"
+      }
+    },
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1536px"
+    },
+    "dataVisualization": {
+      "colorSchemes": {
+        "categorical": ["#4ADE80", "#FB923C", "#3B82F6", "#FDE047", "#EF4444", "#A855F7"],
+        "sequential": ["#1F2937", "#374151", "#4B5563", "#6B7280", "#9CA3AF", "#D1D5DB"],
+        "diverging": ["#EF4444", "#FB923C", "#FDE047", "#4ADE80", "#3B82F6"]
+      },
+      "chartDefaults": {
+        "backgroundColor": "transparent",
+        "textColor": "#B0B0B0",
+        "gridColor": "rgba(255, 255, 255, 0.1)",
+        "tooltipBackground": "#1A1A1A",
+        "tooltipBorder": "1px solid rgba(255, 255, 255, 0.2)",
+        "tooltipBorderRadius": "8px"
+      }
+    },
+    "accessibility": {
+      "contrastRatios": {
+        "normal": "4.5:1",
+        "large": "3:1"
+      },
+      "focusStates": {
+        "outline": "2px solid #3B82F6",
+        "outlineOffset": "2px"
+      }
+    },
+    "implementation": {
+      "frameworks": {
+        "recommended": ["React", "Vue", "Angular"],
+        "cssFrameworks": ["Tailwind CSS", "Styled Components", "Emotion"]
+      },
+      "chartLibraries": {
+        "recommended": ["Chart.js", "D3.js", "Recharts", "Victory"]
+      }
+    }
+  }
