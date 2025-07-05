@@ -85,7 +85,7 @@ export default function PackageDetails({ params }) {
       {/* Back Button */}
       <div className="py-6 px-6 md:px-10">
         <Link href="/dashboard">
-          <Button variant="ghost" className="flex items-center gap-1 text-[#B0B0B0] hover:text-black">
+          <Button variant="ghost" className="flex items-center gap-1 text-[#B0B0B0] hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all">
             <ArrowLeft size={16} />
             <span className="transition-colors duration-150">Back to Dashboard</span>
           </Button>
