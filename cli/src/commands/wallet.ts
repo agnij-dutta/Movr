@@ -7,9 +7,10 @@ import { Account } from '@aptos-labs/ts-sdk';
 import { Command } from 'commander';
 
 export interface WalletCommandOptions {
-  action: 'create' | 'list' | 'show' | 'remove' | 'use';
+  action: 'create' | 'list' | 'show' | 'remove' | 'use' | 'import';
   name?: string;
   network?: string;
+  privateKey?: string;
 }
 
 export class WalletCommand {
@@ -67,6 +68,15 @@ export class WalletCommand {
       .action(async (name) => {
         await this.execute({ action: 'use', name });
       });
+
+    this.program
+      .command('import')
+      .description('Import a wallet from a private key')
+      .argument('<name>', 'Wallet name')
+      .requiredOption('--private-key <privateKey>', 'Private key to import')
+      .action(async (name, options) => {
+        await this.execute({ action: 'import', name, privateKey: options.privateKey });
+      });
   }
 
   async execute(options: WalletCommandOptions): Promise<void> {
@@ -74,6 +84,9 @@ export class WalletCommand {
       switch (options.action) {
         case 'create':
           await this.createWallet(options.name);
+          break;
+        case 'import':
+          await this.importWallet(options.name, options.privateKey);
           break;
         case 'list':
           await this.listWallets();
@@ -178,5 +191,27 @@ export class WalletCommand {
 
     await this.config.setDefaultWallet(name);
     logger.info('Default wallet set successfully', { name });
+  }
+
+  private async importWallet(name?: string, privateKey?: string): Promise<void> {
+    if (!name) {
+      throw new Error('Wallet name is required');
+    }
+    if (!privateKey) {
+      throw new Error('Private key is required');
+    }
+    // Use blockchain service to create account from private key
+    const account = this.blockchain.createAccountFromPrivateKey(privateKey);
+    const walletConfig: WalletConfig = {
+      name: name,
+      address: account.accountAddress.toString(),
+      privateKey: privateKey,
+      isDefault: false
+    };
+    await this.config.addWallet(walletConfig);
+    logger.info('Wallet imported successfully', {
+      name: walletConfig.name,
+      address: walletConfig.address,
+    });
   }
 } 

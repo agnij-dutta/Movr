@@ -132,8 +132,8 @@ module apm_registry::registry {
         total_endorsers: u64,
         /// Registry admin address
         admin: address,
-        /// Capability for registry operations
-        signer_cap: SignerCapability,
+        /// Signer capability for backward compatibility
+        signer_cap: SignerCapability, // Unused in production, present for backward compatibility
         /// Event handles for emissions
         package_published_events: EventHandle<PackagePublishedEvent>,
         package_endorsed_events: EventHandle<PackageEndorsedEvent>,
@@ -190,6 +190,8 @@ module apm_registry::registry {
         id
     }
 
+
+
     /// Validate package name format
     fun validate_package_name(name: &String): bool {
         let length = string::length(name);
@@ -222,14 +224,12 @@ module apm_registry::registry {
     // Initialization Functions
     // ================================
 
-    /// Initialize the package registry (called during module deployment)
-    fun init_module(admin: &signer) {
+    /// Initialize the package registry at the module address (idempotent)
+    public entry fun initialize_registry(admin: &signer) {
+        if (!exists<PackageRegistry>(@apm_registry)) {
         let admin_addr = signer::address_of(admin);
-        
-        // Create resource account for the registry
-        let (resource_signer, signer_cap) = account::create_resource_account(admin, b"apm_registry");
-
-        // Initialize the registry
+            // Create a dummy resource account and get its signer_cap for backward compatibility
+            let (_dummy_signer, dummy_cap) = account::create_resource_account(admin, b"apm_registry_dummy");
         let registry = PackageRegistry {
             packages: table::new(),
             endorsers: table::new(),
@@ -238,20 +238,20 @@ module apm_registry::registry {
             total_packages: 0,
             total_endorsers: 0,
             admin: admin_addr,
-            signer_cap,
-            package_published_events: account::new_event_handle<PackagePublishedEvent>(&resource_signer),
-            package_endorsed_events: account::new_event_handle<PackageEndorsedEvent>(&resource_signer),
-            package_tipped_events: account::new_event_handle<PackageTippedEvent>(&resource_signer),
-            endorser_registered_events: account::new_event_handle<EndorserRegisteredEvent>(&resource_signer),
-        };
-
-        // Move registry to resource account
-        move_to(&resource_signer, registry);
+                signer_cap: dummy_cap,
+                package_published_events: account::new_event_handle<PackagePublishedEvent>(admin),
+                package_endorsed_events: account::new_event_handle<PackageEndorsedEvent>(admin),
+                package_tipped_events: account::new_event_handle<PackageTippedEvent>(admin),
+                endorser_registered_events: account::new_event_handle<EndorserRegisteredEvent>(admin),
+            };
+            move_to<PackageRegistry>(admin, registry);
+        }
     }
 
-    /// Public entry point to initialize the registry after deployment
-    public entry fun initialize_registry(admin: &signer) {
-        init_module(admin);
+    /// Initialize the package registry if it doesn't exist (for backward compatibility)
+    public entry fun initialize_registry_if_not_exists(admin: &signer) {
+        // No-op for backward compatibility
+        return;
     }
 
     // ================================

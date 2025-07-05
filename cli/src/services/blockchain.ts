@@ -13,6 +13,8 @@ import {
   MoveVector,
   AnyNumber,
   Event,
+  Serializer,
+  U8,
 } from '@aptos-labs/ts-sdk';
 import { logger } from '../utils/logger.js';
 import { createBlockchainError, createConfigError } from '../utils/errors.js';
@@ -113,18 +115,45 @@ export class AptosBlockchainService {
         ipfsHash: metadata.ipfsHash,
       });
 
+      console.log('DEBUG: publishPackage args:', {
+        name: metadata.name,
+        version: metadata.version,
+        ipfsHash: metadata.ipfsHash,
+        package_type: 1,
+        tags: metadata.tags,
+        description: metadata.description,
+      });
+
+      // Ensure tags is always an array of MoveString
+      const tags: MoveString[] = Array.isArray(metadata.tags) ? metadata.tags.map(tag => new MoveString(String(tag))) : [];
+      // Enhanced debug logging for all arguments
+      console.log('DEBUG: publishPackage argument details:');
+      console.log('  name:', metadata.name, '| type:', typeof metadata.name, '| length:', typeof metadata.name === 'string' ? metadata.name.length : 'N/A');
+      console.log('  version:', metadata.version, '| type:', typeof metadata.version, '| length:', typeof metadata.version === 'string' ? metadata.version.length : 'N/A');
+      console.log('  ipfsHash:', metadata.ipfsHash, '| type:', typeof metadata.ipfsHash, '| length:', typeof metadata.ipfsHash === 'string' ? metadata.ipfsHash.length : 'N/A');
+      console.log('  package_type:', 0, '| type:', typeof 0);
+      console.log('  tags:', tags, '| type:', Array.isArray(tags) ? 'array' : typeof tags, '| length:', tags.length);
+      console.log('  description:', metadata.description, '| type:', typeof metadata.description, '| length:', typeof metadata.description === 'string' ? metadata.description.length : 'N/A');
+      // Build function arguments in the exact order as the Move ABI, wrapping all strings in MoveString
+      const functionArguments = [
+        new MoveString(metadata.name),
+        new MoveString(metadata.version),
+        new MoveString(metadata.ipfsHash),
+        new U8(0), // 0 = library, 1 = template
+        tags,
+        new MoveString(metadata.description || ''),
+      ];
+      // --- DEBUG LOGGING ---
+      console.log('DEBUG: functionArguments:', functionArguments);
+      functionArguments.forEach((arg, i) => {
+        console.log(`Arg ${i}:`, arg, '| type:', Array.isArray(arg) ? 'array' : typeof arg, '| length:', typeof arg === 'string' ? arg : Array.isArray(arg) ? Array.prototype.slice.call(arg).length : 'N/A');
+      });
+      // --- END DEBUG LOGGING ---
       const transaction = await this.aptos.transaction.build.simple({
         sender: signer.accountAddress,
         data: {
           function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::publish_package`,
-          functionArguments: [
-            metadata.name,
-            metadata.version,
-            metadata.ipfsHash,
-            metadata.packageType || PACKAGE_TYPE_LIBRARY,
-            metadata.description || '',
-            metadata.tags || [],
-          ],
+          functionArguments,
         },
       });
 
@@ -138,8 +167,16 @@ export class AptosBlockchainService {
         senderAuthenticator,
       });
 
+      logger.info('Submitted transaction', { hash: submittedTx.hash });
+
       const txResult = await this.aptos.waitForTransaction({
         transactionHash: submittedTx.hash,
+      });
+
+      logger.info('Transaction result', {
+        transactionHash: submittedTx.hash,
+        success: txResult.success,
+        vmStatus: txResult.vm_status,
       });
 
       return {

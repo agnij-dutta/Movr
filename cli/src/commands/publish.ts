@@ -6,15 +6,13 @@ import { createFileSystemError } from '../utils/errors.js';
 import { AptosBlockchainService } from '../services/blockchain.js';
 import { PinataIPFSService } from '../services/ipfs.js';
 import { ConfigService } from '../services/config.js';
-import { Network, Account, Ed25519PrivateKey } from '@aptos-labs/ts-sdk';
+import { Network } from '@aptos-labs/ts-sdk';
 import { PACKAGE_TYPE_LIBRARY } from '../services/types.js';
 import { Command } from 'commander';
 
-console.log('DEBUG: Entered publish command file');
-
 export interface PublishCommandOptions {
   packagePath: string;
-  version?: string;
+  pkgVersion?: string;
   description?: string;
   homepage?: string;
   repository?: string;
@@ -32,6 +30,7 @@ export class PublishCommand {
   private program: Command;
 
   constructor(configService: ConfigService, parentProgram: Command) {
+    console.log('DEBUG: PublishCommand constructor called');
     this.config = configService;
     const config = this.config.getConfig();
     this.blockchain = new AptosBlockchainService(
@@ -44,25 +43,27 @@ export class PublishCommand {
     this.program = parentProgram
       .command('publish')
       .description('Publish a Move package to APM')
-      .option('-p, --package-path <path>', 'Path to package directory', '.')
-      .option('-v, --version <version>', 'Package version (semver format)')
-      .option('-d, --description <description>', 'Package description')
+      .option('--package-path <path>', 'Path to package directory', '.')
+      .option('--pkg-version <pkgVersion>', 'Package version (semver format)')
+      .option('--description <description>', 'Package description')
       .option('--homepage <url>', 'Package homepage URL')
       .option('--repository <url>', 'Package repository URL')
       .option('--license <license>', 'Package license')
-      .option('-t, --tags <tags>', 'Package tags (comma separated)')
+      .option('--tags <tags>', 'Package tags (comma separated)')
       .option('--ipfs-provider <provider>', 'IPFS provider to use', 'pinata')
       .option('--network <network>', 'Network to publish to')
       .option('--wallet <name>', 'Wallet to use for publishing')
       .action(async (options) => {
+        console.log('DEBUG: .action handler called with options:', options);
         await this.execute(options);
       });
   }
 
   async execute(options: PublishCommandOptions): Promise<void> {
+    console.log('DEBUG: PublishCommand.execute called');
     console.log('DEBUG: Entered publish execute function');
     try {
-      console.log('Publishing package:', options.packagePath, options.version);
+      console.log('Publishing package:', options.packagePath, options.pkgVersion);
 
       // Validate package directory
       const packageDir = path.resolve(options.packagePath);
@@ -87,7 +88,7 @@ export class PublishCommand {
       }
 
       // Validate version format
-      const version = options.version || '1.0.0';
+      const version = options.pkgVersion || '1.0.0';
       console.log('DEBUG: Using version:', version);
       if (!this.isValidSemver(version)) {
         throw createFileSystemError('Invalid version format. Must be semver (e.g., 1.0.0)');
@@ -113,10 +114,8 @@ export class PublishCommand {
         throw createFileSystemError('No wallet configured or private key missing. Run `apm wallet init` first');
       }
 
-      // Create account from private key
-      const account = Account.fromPrivateKey({
-        privateKey: walletConfig.privateKey as unknown as Ed25519PrivateKey,
-      });
+      // Create account from private key using blockchain service
+      const account = this.blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
       console.log('DEBUG: Created account from private key:', account.accountAddress.toString());
 
       // Parse tags

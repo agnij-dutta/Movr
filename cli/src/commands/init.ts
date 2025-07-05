@@ -6,6 +6,8 @@ import { logger } from '../utils/logger.js';
 import { createFileSystemError } from '../utils/errors.js';
 import { Command } from 'commander';
 import { ConfigService } from '../services/config.js';
+import { AptosBlockchainService } from '../services/blockchain.js';
+import { Network } from '@aptos-labs/ts-sdk';
 
 export interface InitCommandOptions {
   directory: string;
@@ -30,14 +32,19 @@ export class InitCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('init')
-      .description('Initialize a new Move package')
-      .argument('[directory]', 'Directory to create package in', '.')
+      .description('Initialize a new Move package or the APM registry')
+      .argument('[directory]', 'Directory to create package in (or "registry" to initialize registry)', '.')
       .option('-n, --name <name>', 'Package name')
       .option('-a, --author <author>', 'Package author')
       .option('-d, --description <description>', 'Package description')
       .option('-t, --template <template>', 'Package template (basic, token, defi)', 'basic')
+      .option('--wallet <name>', 'Wallet to use for registry initialization')
       .action(async (directory, options) => {
+        if (directory === 'registry') {
+          await this.executeRegistryInit(options);
+        } else {
         await this.execute({ directory, ...options });
+        }
       });
   }
 
@@ -89,6 +96,73 @@ export class InitCommand {
     } catch (error) {
       logger.error('Failed to initialize package', { error });
       throw error;
+    }
+  }
+
+  async executeRegistryInit(options: any): Promise<void> {
+    try {
+      logger.info('Initializing APM registry');
+
+      // Get wallet configuration
+      const walletConfig = this.config.getWallet(options.wallet || '');
+      if (!walletConfig || !walletConfig.privateKey) {
+        throw new Error('No wallet configured or private key missing. Run `apm wallet create` first');
+      }
+
+      // Initialize blockchain service
+      const config = this.config.getConfig();
+      const blockchain = new AptosBlockchainService(
+        (config.currentNetwork as Network) || Network.DEVNET
+      );
+
+      // Create account from private key
+      const account = blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
+
+      console.log(chalk.blue('Initializing APM registry...'));
+      console.log(chalk.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
+
+      // Get contract address from config
+      const contractAddress = this.config.getRegistryContract();
+
+      // Call the registry initialization function
+      const transaction = await blockchain['aptos'].transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `${contractAddress}::registry::initialize_registry`,
+          functionArguments: [],
+        },
+      });
+
+      const senderAuthenticator = blockchain['aptos'].transaction.sign({
+        signer: account,
+        transaction,
+      });
+
+      const submittedTx = await blockchain['aptos'].transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      const txResult = await blockchain['aptos'].waitForTransaction({
+        transactionHash: submittedTx.hash,
+      });
+
+      if (txResult.success) {
+        console.log(chalk.green('✅ APM registry initialized successfully!'));
+        console.log(chalk.gray(`Transaction hash: ${submittedTx.hash}`));
+      } else {
+        console.log(chalk.red('✗ Failed to initialize registry'));
+        if (txResult.vm_status) {
+          console.log(chalk.red(txResult.vm_status));
+        }
+      }
+
+    } catch (error) {
+      logger.error('Failed to initialize registry', { error });
+      console.log(chalk.red('✗ Failed to initialize registry'));
+      if (error instanceof Error) {
+        console.log(chalk.red(error.message));
+      }
     }
   }
 

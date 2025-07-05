@@ -49,7 +49,7 @@ async function main() {
 
     // Global options
     program.option('-n, --network <network>', 'Network to use (mainnet, testnet, devnet)');
-    program.option('-v, --verbose', 'Enable verbose logging');
+    program.option('-b, --verbose', 'Enable verbose logging');
 
     // Initialize config service
     const configService = new ConfigService();

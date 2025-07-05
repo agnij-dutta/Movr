@@ -6,9 +6,6 @@ authors = []
 [addresses]
 apm_registry = "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34"
 
-[dev-addresses]
-apm_registry = "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34"
-
 [dependencies.AptosFramework]
 git = "https://github.com/aptos-labs/aptos-framework.git"
 rev = "mainnet"
