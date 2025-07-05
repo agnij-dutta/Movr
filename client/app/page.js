@@ -267,9 +267,7 @@ export default function MovrLanding() {
               </>
             ) : (
               <>
-                <Button variant="outline" className="get-started-btn border-white/20 text-white bg-transparent" onClick={() => setIsModalOpen(true)}>
-                  Get Started
-                </Button>
+              
                 {!connected && userOS === 'windows' && (
                   <Button
                     size="lg"
