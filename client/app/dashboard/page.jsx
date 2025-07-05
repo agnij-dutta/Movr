@@ -25,9 +25,9 @@ import Link from "next/link";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import WalletAddressButton from "@/components/ui/WalletAddressButton";
-
-// API helpers
-import { searchPackages, getAllPackages } from "@/lib/api";
+import { useAptosSearch } from '@/lib/hooks/useAptosSearch';
+import { useAptosEndorse } from '@/lib/hooks/useAptosEndorse';
+import { useAptosTip } from '@/lib/hooks/useAptosTip';
 
 // Placeholder tags (could be replaced with dynamic tags from API later)
 const popularTags = [
@@ -50,83 +50,61 @@ const fadeIn = {
 };
 
 export default function Dashboard() {
+  const { account, connect, disconnect, connected } = useWallet();
+  const { results, search, fetchAll, loading: searchLoading, error: searchError } = useAptosSearch();
+  const { endorse, txHash: endorseTx, loading: endorseLoading, error: endorseError } = useAptosEndorse();
+  const { tip, txHash: tipTx, loading: tipLoading, error: tipError } = useAptosTip();
+
   const [searchQuery, setSearchQuery] = useState("");
-  const { account, disconnect, connected } = useWallet();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
 
   // Dynamic data from API
   const [allPackages, setAllPackages] = useState([]);
   const [topPackages, setTopPackages] = useState([]);
   const [recentPackages, setRecentPackages] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  const [stats, setStats] = useState({ totalPackages: 0, totalEndorsements: 0, totalDownloads: 0, totalTips: 0 });
 
-  // Fetch all packages once on mount
+  // Fetch all packages and calculate stats on mount
   useEffect(() => {
     (async () => {
-      try {
-        const res = await getAllPackages();
-        if (res?.success) {
-          const pkgs = Array.isArray(res.data) ? res.data : res.data?.packages || [];
-          setAllPackages(pkgs);
-
-          const fmt = (n) => {
-            if (n > 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-            if (n > 1_000) return `${(n / 1_000).toFixed(1)}K`;
-            return `${n}`;
-          };
-
-          // Sort by endorsements length desc for top packages
-          const sortedByEndorse = [...pkgs].sort(
-            (a, b) => (b.endorsements?.length || 0) - (a.endorsements?.length || 0)
-          );
-          setTopPackages(
-            sortedByEndorse.slice(0, 4).map((p) => ({
-              name: p.name,
-              description: p.description,
-              downloads: fmt(p.downloadCount || 0),
-              version: p.version,
-            }))
-          );
-
-          // Recent packages: sort by timestamp desc
-          const sortedByTime = [...pkgs].sort((a, b) => b.timestamp - a.timestamp);
-          setRecentPackages(
-            sortedByTime.slice(0, 3).map((p) => ({
-              name: p.name,
-              description: p.description,
-              downloads: fmt(p.downloadCount || 0),
-              version: p.version,
-            }))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to load packages", err);
-      }
+      const pkgs = await fetchAll();
+      setAllPackages(pkgs);
+      // Top 5 by endorsements
+      const sortedByEndorsements = [...pkgs].sort((a, b) => (b.endorsements?.length || 0) - (a.endorsements?.length || 0));
+      setTopPackages(sortedByEndorsements.slice(0, 5));
+      setRecentPackages([...pkgs].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5));
+      // Calculate stats
+      const totalPackages = pkgs.length;
+      const totalEndorsements = pkgs.reduce((sum, pkg) => sum + (pkg.endorsements?.length || 0), 0);
+      const totalDownloads = pkgs.reduce((sum, pkg) => sum + (pkg.downloadCount || 0), 0);
+      const totalTips = pkgs.reduce((sum, pkg) => sum + (pkg.totalTips || 0), 0);
+      setStats({ totalPackages, totalEndorsements, totalDownloads, totalTips });
     })();
-  }, []);
+  }, [fetchAll]);
 
-  // Live search (debounced)
+  // Live search (debounced, client-side)
   useEffect(() => {
-    const handler = setTimeout(async () => {
-      try {
-        if (searchQuery.trim() === "") {
-          setSearchResults([]);
-          return;
-        }
-        const res = await searchPackages(searchQuery);
-        if (res?.success) {
-          const pkgs = Array.isArray(res.data) ? res.data : res.data?.packages || [];
-          setSearchResults(pkgs);
-        }
-      } catch (err) {
-        console.error("Search failed", err);
+    const handler = setTimeout(() => {
+      const q = searchQuery.trim().toLowerCase();
+      if (q === "") {
+        setSearchResults(allPackages);
+        return;
       }
-    }, 400); // debounce 400ms
+      const filtered = allPackages.filter(pkg => {
+        const name = (pkg.name || '').toLowerCase();
+        const desc = (pkg.description || '').toLowerCase();
+        const tags = (pkg.tags || []).join(' ').toLowerCase();
+        return name.includes(q) || desc.includes(q) || tags.includes(q);
+      });
+      setSearchResults(filtered);
+    }, 200); // debounce 200ms
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [searchQuery, allPackages]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -145,13 +123,6 @@ export default function Dashboard() {
     };
   }, [dropdownOpen]);
 
-  // Redirect to landing if not connected
-  useEffect(() => {
-    if (!connected) {
-      router.replace("/");
-    }
-  }, [connected, router]);
-
   // Show overlay when searchQuery is not empty
   useEffect(() => {
     if (searchQuery.trim() !== "") {
@@ -161,8 +132,37 @@ export default function Dashboard() {
     }
   }, [searchQuery]);
 
-  // Filter search results
+  // Filtered results are just searchResults now
   const filteredResults = searchResults;
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    search(searchQuery);
+  };
+
+  const handleEndorse = async (pkg) => {
+    if (!connected) return connect();
+    await endorse(account, pkg.name, pkg.version);
+    search(searchQuery); // refresh
+  };
+
+  const handleTip = async (pkg) => {
+    if (!connected) return connect();
+    if (!tipAmount) return;
+    await tip(account, pkg.name, pkg.version, Number(tipAmount));
+    search(searchQuery); // refresh
+  };
+
+  if (!connected) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] text-white">
+        <h2 className="text-2xl mb-4">Connect your wallet to access the dashboard</h2>
+        <button onClick={connect} className="px-6 py-2 bg-[#d6ff4b] text-[#232b3b] rounded font-bold">
+          Connect Wallet
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
@@ -265,7 +265,7 @@ export default function Dashboard() {
                 <div className="col-span-2 text-center text-[#b0b0b0] text-lg mt-12">No results found.</div>
               ) : (
                 filteredResults.map((pkg, idx) => (
-                  <div key={pkg.name} className="flex items-center gap-6 p-4 bg-[#0A0A0A] rounded-lg border border-[#2a3538] hover:bg-[#1a2326] transition-colors cursor-pointer">
+                  <div key={pkg.name + '-' + pkg.version} className="flex items-center gap-6 p-4 bg-[#0A0A0A] rounded-lg border border-[#2a3538] hover:bg-[#1a2326] transition-colors cursor-pointer">
                     <div className="w-16 h-16 flex items-center justify-center bg-[#1a2326] rounded-md overflow-hidden">
                       {/* Replace with <img src={pkg.icon} ... /> if you have icons */}
                       <span className="text-3xl">🧩</span>
@@ -303,7 +303,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent className="space-y-5 pb-6">
                   {topPackages.map((pkg, index) => (
-                    <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
+                    <Link key={pkg.name + '-' + pkg.version} href={`/dashboard/package/${pkg.name}`}>
                       <motion.div 
                         className="group flex flex-col gap-2 p-4 rounded-lg transition-colors cursor-pointer"
                         initial={{ opacity: 0, y: 20 }}
@@ -341,7 +341,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent className="space-y-5 pb-6">
                   {recentPackages.map((pkg, index) => (
-                    <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
+                    <Link key={pkg.name + '-' + pkg.version} href={`/dashboard/package/${pkg.name}`}>
                       <motion.div 
                         className="group flex flex-col gap-2 p-4 rounded-lg transition-colors cursor-pointer"
                         initial={{ opacity: 0, y: 20 }}
@@ -425,7 +425,7 @@ export default function Dashboard() {
                       transition={{ duration: 0.3 }}
                     >
                       <p className="text-[#B0B0B0] text-sm">Total Packages</p>
-                      <p className="text-2xl font-bold text-white mt-1">284</p>
+                      <p className="text-2xl font-bold text-white mt-1">{stats.totalPackages}</p>
                     </motion.div>
                     <motion.div 
                       className="bg-[#1A1A1A] p-4 rounded-lg"
@@ -434,7 +434,7 @@ export default function Dashboard() {
                       transition={{ duration: 0.3, delay: 0.1 }}
                     >
                       <p className="text-[#B0B0B0] text-sm">Downloads</p>
-                      <p className="text-2xl font-bold text-white mt-1">42.8M</p>
+                      <p className="text-2xl font-bold text-white mt-1">{stats.totalDownloads}</p>
                     </motion.div>
                     <motion.div 
                       className="bg-[#1A1A1A] p-4 rounded-lg"
@@ -443,7 +443,7 @@ export default function Dashboard() {
                       transition={{ duration: 0.3, delay: 0.2 }}
                     >
                       <p className="text-[#B0B0B0] text-sm">Active</p>
-                      <p className="text-2xl font-bold text-white mt-1">189</p>
+                      <p className="text-2xl font-bold text-white mt-1">{stats.totalEndorsements}</p>
                     </motion.div>
                     <motion.div 
                       className="bg-[#1A1A1A] p-4 rounded-lg"
@@ -452,27 +452,27 @@ export default function Dashboard() {
                       transition={{ duration: 0.3, delay: 0.3 }}
                     >
                       <p className="text-[#B0B0B0] text-sm">Updates</p>
-                      <p className="text-2xl font-bold text-white mt-1">56</p>
+                      <p className="text-2xl font-bold text-white mt-1">{stats.totalTips}</p>
                     </motion.div>
                   </div>
                 </CardContent>
               </div>
             </Card>
 
-            {/* Most Starred */}
+            {/* Most Endorsements */}
             <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
               <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
               <div className="relative z-30">
                 <CardHeader>
                   <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <Star className="text-[#FDE047]" size={20} />
-                    Most Starred
+                    Most Endorsements
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-6 space-y-3">
                   {topPackages.slice(0, 3).map((pkg, index) => (
                     <motion.div 
-                      key={`star-${pkg.name}`}
+                      key={`endorse-${pkg.name}`}
                       className="flex items-center justify-between p-2 rounded-lg hover:bg-[#3A3A3A] transition-colors"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -481,7 +481,7 @@ export default function Dashboard() {
                       <span className="font-medium text-white">{pkg.name}</span>
                       <div className="flex items-center gap-1">
                         <Star className="fill-[#FDE047] text-[#FDE047]" size={14} />
-                        <span className="text-[#ffffff]">{Math.round(parseInt(pkg.downloads.replace(/[^0-9.]/g, '')) / 100)}K</span>
+                        <span className="text-[#ffffff]">{pkg.endorsements?.length >= 1000 ? (pkg.endorsements.length / 1000).toFixed(1) + 'K' : pkg.endorsements?.length || 0}</span>
                       </div>
                     </motion.div>
                   ))}

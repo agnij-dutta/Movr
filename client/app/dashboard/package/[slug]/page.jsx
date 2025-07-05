@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, Heart, Code, Package, GitBranch, Clock, ExternalLink, Copy, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { useAptosEndorse } from "@/lib/hooks/useAptosEndorse";
+import { useAptosTip } from "@/lib/hooks/useAptosTip";
+import { downloadFile } from "@/lib/ipfs";
+import { getAllPackages } from "@/lib/aptos";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -16,53 +20,108 @@ const fadeIn = {
   transition: { duration: 0.5 }
 };
 
-// Mock data for the package details
-const packageData = {
-  name: "react",
-  version: "18.3.0",
-  description: "React is a JavaScript library for building user interfaces.",
-  published: "2 months ago",
-  license: "MIT",
-  weeklyDownloads: "12.4M",
-  repository: "https://github.com/facebook/react",
-  homepage: "https://react.dev",
-  dependencies: [],
-  dependents: 142850,
-  versions: 87,
-  tags: ["ui", "frontend", "javascript", "library", "components"]
-};
-
-const codeExample = `import React from 'react';
-import { createRoot } from 'react-dom/client';
-
-function App() {
-  return <h1>Hello, world!</h1>;
-}
-
-const root = createRoot(document.getElementById('root'));
-root.render(<App />);`;
-
-const readmeContent = `
-# React
-
-A JavaScript library for building user interfaces
-
-* **Declarative:** React makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes.
-
-* **Component-Based:** Build encapsulated components that manage their own state, then compose them to make complex UIs.
-
-* **Learn Once, Write Anywhere:** You can develop new features in React without rewriting existing code. React can also render on the server using Node and power mobile apps using React Native.
-`;
-
-export default function PackageDetails({ params }) {
+export default function PackageDetails() {
+  const { slug } = useParams();
   const [activeTab, setActiveTab] = useState("readme");
   const [showLogout, setShowLogout] = useState(false);
-  const { slug } = useParams();
   const { account, disconnect, connected } = useWallet();
-  
-  // In a real app, you would fetch the package data based on the slug
-  const packageInfo = packageData;
-  
+
+  // Hooks for on-chain and IPFS
+  const { endorse, txHash: endorseTx, loading: endorseLoading } = useAptosEndorse();
+  const { tip, txHash: tipTx, loading: tipLoading } = useAptosTip();
+  const [resolvedVersion, setResolvedVersion] = useState(null);
+  const [versionError, setVersionError] = useState(null);
+
+  // IPFS content
+  const [readmeContent, setReadmeContent] = useState("");
+  const [codeExample, setCodeExample] = useState("");
+  const [ipfsLoading, setIpfsLoading] = useState(false);
+  const [ipfsError, setIpfsError] = useState(null);
+
+  // Removed useAptosGetMetadata, using local state for metadata
+  const [metadata, setMetadata] = useState(null);
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaError, setMetaError] = useState(null);
+
+  // Fetch package metadata and IPFS content
+  useEffect(() => {
+    if (!slug) return;
+    setMetaLoading(true);
+    (async () => {
+      setVersionError(null);
+      setResolvedVersion(null);
+      try {
+        // Fetch all packages and find the latest version for this slug
+        const all = await getAllPackages();
+        console.log('[slug] getAllPackages result:', all);
+        const pkgs = all.filter(pkg => pkg.name === slug);
+        console.log('[slug] filtered packages for', slug, pkgs);
+        if (!pkgs.length) {
+          setVersionError("No versions found for this package.");
+          setMetaLoading(false);
+          return;
+        }
+        // Sort by timestamp descending (latest first)
+        pkgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const latest = pkgs[0];
+        setResolvedVersion(latest.version);
+        setMetadata(latest);
+      } catch (e) {
+        setVersionError("Failed to resolve latest version");
+        setMetaError(e);
+        console.error('[slug] Error resolving latest version:', e);
+      } finally {
+        setMetaLoading(false);
+      }
+    })();
+  }, [slug]);
+
+  useEffect(() => {
+    if (!metadata || !metadata.ipfsHash) return;
+    setIpfsLoading(true);
+    setIpfsError(null);
+    (async () => {
+      try {
+        // Try to fetch README.md and code example from IPFS directory
+        const readmeBlob = await downloadFile(`${metadata.ipfsHash}/README.md`);
+        const readmeText = await readmeBlob.text();
+        setReadmeContent(readmeText);
+        // Try to fetch code example (optional)
+        try {
+          const codeBlob = await downloadFile(`${metadata.ipfsHash}/example.js`);
+          setCodeExample(await codeBlob.text());
+        } catch { setCodeExample(""); }
+      } catch (e) {
+        setIpfsError(e);
+        setReadmeContent("");
+        setCodeExample("");
+      } finally {
+        setIpfsLoading(false);
+      }
+    })();
+  }, [metadata]);
+
+  // Fallbacks for UI
+  const packageInfo = metadata || {};
+
+  // Endorse/tip handlers (example usage)
+  // const handleEndorse = async () => await endorse(account, slug, packageInfo.version);
+  // const handleTip = async (amount) => await tip(account, slug, packageInfo.version, amount);
+
+  // Loading and error states
+  if (metaLoading || ipfsLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-white">Loading package...</div>;
+  }
+  if (metaError) {
+    return <div className="min-h-screen flex items-center justify-center text-red-400">Error loading package: {metaError.message}</div>;
+  }
+  if (versionError) {
+    return <div className="min-h-screen flex items-center justify-center text-white">{versionError}</div>;
+  }
+  if (!packageInfo.name) {
+    return <div className="min-h-screen flex items-center justify-center text-white">Package not found.</div>;
+  }
+
   return (
     <div className="min-h-screen bg-[--background] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
       <div className="absolute inset-0 w-full h-full -z-20 pointer-events-none select-none" style={{
@@ -108,11 +167,11 @@ export default function PackageDetails({ params }) {
       >
         {/* Package Name */}
         <h1 className="text-4xl md:text-6xl font-extrabold mb-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans tracking-tight" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
-          {packageInfo.name} <span className="align-super text-lg font-bold text-[#b0b0b0] ml-2">{packageInfo.version}</span>
+          {packageInfo.name} <span className="align-super text-lg font-bold text-[#b0b0b0] ml-2">{packageInfo.version || ""}</span>
         </h1>
         {/* Short Description */}
         <p className="text-lg md:text-2xl text-[#b0b0b0] font-normal max-w-2xl mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-          {packageInfo.description}
+          {packageInfo.description || "No description provided."}
         </p>
         {/* Links Row */}
         <div className="flex flex-wrap gap-4 mb-2">
@@ -189,7 +248,7 @@ export default function PackageDetails({ params }) {
             onClick={() => setActiveTab('dependents')}
           >
             <Package size={16} className="mr-2" />
-            {packageInfo.dependents.toLocaleString()} Dependents
+            {packageInfo.dependents?.toLocaleString()} Dependents
           </Button>
           <Button 
             variant="ghost" 
@@ -240,7 +299,7 @@ export default function PackageDetails({ params }) {
                 <div className="bg-[#1A1A1A] rounded-lg p-4">
                   <div className="mb-2 text-[#B0B0B0]">in JavaScript</div>
                   <pre className="text-white font-mono text-sm overflow-x-auto">
-                    {codeExample}
+                    {codeExample || "No code example found."}
                   </pre>
                 </div>
               </div>
@@ -249,7 +308,7 @@ export default function PackageDetails({ params }) {
               <div>
                 <div className="prose prose-invert max-w-none">
                   <pre className="whitespace-pre-wrap text-[#B0B0B0] text-sm">
-                    {readmeContent}
+                    {readmeContent || "No README found."}
                   </pre>
                 </div>
               </div>
@@ -296,7 +355,7 @@ export default function PackageDetails({ params }) {
               <CardContent className="pb-6">
                 <a href={packageInfo.repository} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
                   <GitBranch size={16} />
-                  <span>{packageInfo.repository.replace("https://", "")}</span>
+                  <span>{(packageInfo.repository || '').replace("https://", "")}</span>
                 </a>
               </CardContent>
             </div>
@@ -314,7 +373,7 @@ export default function PackageDetails({ params }) {
               <CardContent className="pb-6">
                 <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
                   <ExternalLink size={16} />
-                  <span>{packageInfo.homepage.replace("https://", "")}</span>
+                  <span>{(packageInfo.homepage || '').replace("https://", "")}</span>
                 </a>
               </CardContent>
             </div>
@@ -331,7 +390,7 @@ export default function PackageDetails({ params }) {
               </CardHeader>
               <CardContent className="pb-6">
                 <div className="flex flex-col">
-                  <span className="text-2xl font-bold text-white">{packageInfo.weeklyDownloads}</span>
+                  <span className="text-2xl font-bold text-white">{packageInfo.downloadCount || 0}</span>
                 </div>
               </CardContent>
             </div>
@@ -348,7 +407,7 @@ export default function PackageDetails({ params }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-6">
-                  <span className="text-xl font-bold text-white">{packageInfo.version}</span>
+                  <span className="text-xl font-bold text-white">{packageInfo.version || ""}</span>
                 </CardContent>
               </div>
             </Card>
@@ -361,7 +420,7 @@ export default function PackageDetails({ params }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-6">
-                  <span className="text-xl font-bold text-white">{packageInfo.license}</span>
+                  <span className="text-xl font-bold text-white">{packageInfo.license || ""}</span>
                 </CardContent>
               </div>
             </Card>
@@ -378,7 +437,7 @@ export default function PackageDetails({ params }) {
               </CardHeader>
               <CardContent className="pb-6">
                 <div className="flex flex-wrap gap-2">
-                  {packageInfo.tags.map((tag) => (
+                  {(packageInfo.tags || []).map((tag) => (
                     <Badge 
                       key={tag}
                       variant="outline" 
