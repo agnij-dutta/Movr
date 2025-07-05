@@ -334,7 +334,7 @@ export default function MovrLanding() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/70 to-transparent" />
         </div>
         {/* Add bottom gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 to-transparent z-[1]"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent z-[1]"></div>
         <div className="relative z-10 text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
             Built for modern teams
@@ -425,7 +425,7 @@ export default function MovrLanding() {
       </section>
 
       {/* Web Editor Section */}
-      <section className="relative px-6 lg:px-12 py-32">
+      <section className="relative px-6 lg:px-12 py-32 bg-black">
         <div className="absolute inset-0 z-0">
           <img 
             src="/2hero.jpg" 
@@ -435,7 +435,7 @@ export default function MovrLanding() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/70 to-transparent" />
         </div>
         {/* Add top gradient overlay */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/90 to-transparent z-[1]"></div>
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-black to-transparent z-[1]"></div>
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div>
@@ -469,10 +469,12 @@ export default function MovrLanding() {
             </div>
           </div>
         </div>
+        {/* Add bottom gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent z-[1]"></div>
       </section>
 
       {/* Collaboration Section */}
-      <section className="relative px-6 lg:px-12 py-32 mintlify-section-gradient">
+      <section className="relative px-6 lg:px-12 py-32 mintlify-section-gradient bg-black">
         <div className="absolute inset-0 z-0">
           <img 
             src="/2hero.jpg" 
@@ -482,7 +484,7 @@ export default function MovrLanding() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/70 to-transparent" />
         </div>
         {/* Add top gradient overlay */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/90 to-transparent z-[1]"></div>
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-black to-transparent z-[1]"></div>
         {/* Add bottom gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 to-transparent z-[1]"></div>
         <div className="relative z-10 max-w-6xl mx-auto">
