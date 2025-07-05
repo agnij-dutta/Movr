@@ -17,10 +17,11 @@ import {
   Plus,
   Eye,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Download
 } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useWallet } from "@aptos-labs/wallet-adapter-react"
 import { WalletModal } from "@/components/WalletModal"
 import { useRouter } from "next/navigation"
@@ -215,6 +216,33 @@ export default function MovrLanding() {
     }
   }, [connected, router]);
 
+  // OS detection logic
+  const userOS = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const ua = window.navigator.userAgent;
+    if (/Windows/i.test(ua)) return 'windows';
+    if (/Linux/i.test(ua)) return 'linux';
+    if (/Mac/i.test(ua)) return 'mac';
+    return null;
+  }, []);
+
+  // Download handlers
+  const handleDownload = async (url, filename) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Network response was not ok');
+      const blob = await res.blob();
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      alert('Failed to download file. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen mintlify-bg text-white">
       {/* Header */}
@@ -239,11 +267,27 @@ export default function MovrLanding() {
               </>
             ) : (
               <>
-               
-               
                 <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent" onClick={() => setIsModalOpen(true)}>
                   Get Started
                 </Button>
+                {!connected && userOS === 'windows' && (
+                  <Button
+                    size="lg"
+                    className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2"
+                    onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.bat', 'install.bat')}
+                  >
+                    <Download size={18} className="mr-1" /> Download for Windows
+                  </Button>
+                )}
+                {!connected && userOS === 'linux' && (
+                  <Button
+                    size="lg"
+                    className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2"
+                    onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.sh', 'install.sh')}
+                  >
+                    <Download size={18} className="mr-1" /> Download for Linux
+                  </Button>
+                )}
               </>
             )}
           </div>
@@ -277,7 +321,24 @@ export default function MovrLanding() {
               <Button size="lg" className="bg-white text-slate-900 hover:bg-gray-100 px-8" onClick={() => setIsModalOpen(true)}>
                 Get Started
               </Button>
-             
+              {!connected && userOS === 'windows' && (
+                <Button
+                  size="lg"
+                  className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2"
+                  onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.bat', 'install.bat')}
+                >
+                  <Download size={18} className="mr-1" /> Download for Windows
+                </Button>
+              )}
+              {!connected && userOS === 'linux' && (
+                <Button
+                  size="lg"
+                  className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2"
+                  onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.sh', 'install.sh')}
+                >
+                  <Download size={18} className="mr-1" /> Download for Linux
+                </Button>
+              )}
             </div>
           </div>
 
