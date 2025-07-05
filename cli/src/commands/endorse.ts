@@ -29,7 +29,7 @@ export class EndorseCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('endorse')
-      .description('Endorse a Move package or register as an endorser')
+      .description('Endorse a Move package or register as an endorser in movr')
       .argument('[name]', 'Package name to endorse or "register" to register as endorser')
       .argument('[stakeAmount]', 'Amount to stake (required for register)')
       .option('-v, --version <version>', 'Package version')

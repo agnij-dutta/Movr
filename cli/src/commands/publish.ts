@@ -42,7 +42,7 @@ export class PublishCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('publish')
-      .description('Publish a Move package to APM')
+      .description('Publish a Move package to movr')
       .option('--package-path <path>', 'Path to package directory', '.')
       .option('--pkg-version <pkgVersion>', 'Package version (semver format)')
       .option('--description <description>', 'Package description')

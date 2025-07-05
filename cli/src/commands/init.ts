@@ -32,7 +32,7 @@ export class InitCommand {
     // Register command with Commander
     this.program = parentProgram
       .command('init')
-      .description('Initialize a new Move package or the APM registry')
+      .description('Initialize a new Move package or the movr registry')
       .argument('[directory]', 'Directory to create package in (or "registry" to initialize registry)', '.')
       .option('-n, --name <name>', 'Package name')
       .option('-a, --author <author>', 'Package author')
@@ -90,8 +90,8 @@ export class InitCommand {
       console.log(chalk.gray('\nNext steps:'));
       console.log(chalk.gray('  1. Navigate to the package directory'));
       console.log(chalk.gray('  2. Build your Move modules in sources/'));
-      console.log(chalk.gray('  3. Run tests with `apm test`'));
-      console.log(chalk.gray('  4. Publish with `apm publish`'));
+      console.log(chalk.gray('  3. Run tests with `movr test`'));
+      console.log(chalk.gray('  4. Publish with `movr publish`'));
 
     } catch (error) {
       logger.error('Failed to initialize package', { error });
@@ -101,12 +101,12 @@ export class InitCommand {
 
   async executeRegistryInit(options: any): Promise<void> {
     try {
-      logger.info('Initializing APM registry');
+      logger.info('Initializing movr registry');
 
       // Get wallet configuration
       const walletConfig = this.config.getWallet(options.wallet || '');
       if (!walletConfig || !walletConfig.privateKey) {
-        throw new Error('No wallet configured or private key missing. Run `apm wallet create` first');
+        throw new Error('No wallet configured or private key missing. Run `movr wallet create` first');
       }
 
       // Initialize blockchain service
@@ -118,7 +118,7 @@ export class InitCommand {
       // Create account from private key
       const account = blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
 
-      console.log(chalk.blue('Initializing APM registry...'));
+      console.log(chalk.blue('Initializing movr registry...'));
       console.log(chalk.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
 
       // Get contract address from config
@@ -148,7 +148,7 @@ export class InitCommand {
       });
 
       if (txResult.success) {
-        console.log(chalk.green('✅ APM registry initialized successfully!'));
+        console.log(chalk.green('✅ movr registry initialized successfully!'));
         console.log(chalk.gray(`Transaction hash: ${submittedTx.hash}`));
       } else {
         console.log(chalk.red('✗ Failed to initialize registry'));
@@ -860,7 +860,7 @@ ${packageInfo.author}
 ### Prerequisites
 
 - [Aptos CLI](https://aptos.dev/cli-tools/aptos-cli-tool/install-aptos-cli)
-- [APM CLI](https://github.com/your-org/apm-cli)
+- [movr CLI](https://github.com/your-org/movr-cli)
 
 ### Building
 
@@ -877,7 +877,7 @@ aptos move test
 ### Publishing
 
 \`\`\`bash
-apm publish
+movr publish
 \`\`\`
 
 ## License
@@ -898,8 +898,8 @@ node_modules/
 logs/
 *.log
 
-# APM
-.apm/
+# movr
+.movr/
 
 # IDE
 .vscode/

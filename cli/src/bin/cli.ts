@@ -29,22 +29,20 @@ async function main() {
   try {
     // Display banner
     console.log(chalk.cyan(`
-    ╔═══╗╔═══╗╔═╗╔═╗     ╔═══╗╔╗   ╔══╗
-    ║╔═╗║║╔═╗║║║╚╝║║     ║╔═╗║║║   ║╔╗║
-    ║╚═╝║║╚═╝║║╔╗╔╗║     ║║ ║║║║   ║║║║
-    ║╔══╝║╔══╝║║║║║║     ║║ ║║║║ ╔╗║║║║
-    ║║   ║║   ║║║║║║     ║╚═╝║║╚═╝║║╚╝║
-    ╚╝   ╚╝   ╚╝╚╝╚╝     ╚═══╝╚═══╝╚══╝
+▗▖  ▗▖ ▗▄▖ ▗▖  ▗▖▗▄▄▖ 
+▐▛▚▞▜▌▐▌ ▐▌▐▌  ▐▌▐▌ ▐▌
+▐▌  ▐▌▐▌ ▐▌▐▌  ▐▌▐▛▀▚▖
+▐▌  ▐▌▝▚▄▞▘ ▝▚▞▘ ▐▌ ▐▌ 
     `));
     
-    console.log(chalk.gray(`Aptos Package Manager v${packageJson.version}`));
-    console.log(chalk.gray('Manage your Move packages with IPFS integration\n'));
+    console.log(chalk.gray(`movr v${packageJson.version}`));
+    console.log(chalk.gray('The Move Package Manager with IPFS integration\n'));
 
     const program = new Command();
 
     program
-      .name('apm')
-      .description('Aptos Package Manager - Manage Move packages with IPFS')
+      .name('movr')
+      .description('movr - The Move Package Manager with IPFS')
       .version(packageJson.version);
 
     // Global options
