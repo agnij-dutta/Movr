@@ -13,7 +13,8 @@ import {
   Filter,
   Copy,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  X
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,50 @@ const popularTags = [
   "animation", "forms", "validation", "blockchain", "web3"
 ];
 
+// Mock data for search results (add icons as URLs or emoji for now)
+const searchResultsMock = [
+  {
+    name: "Aptos Assistant",
+    description: "Your AI-powered companion, designed to streamline and simplify your experience with smart, accessible support as you navigate the Aptos network.",
+    icon: "/public/aptos-assistant.png"
+  },
+  {
+    name: "Aptos Build",
+    description: "The essential toolkit for every Aptos developer, by Aptos Labs.",
+    icon: "/public/aptos-build.png"
+  },
+  {
+    name: "Aptos Connect",
+    description: "Keyless wallet with social login and no downloads required.",
+    icon: "/public/aptos-connect.png"
+  },
+  {
+    name: "Aptos Explorer",
+    description: "Aptos blockchain explorer by Aptos Labs",
+    icon: "/public/aptos-explorer.png"
+  },
+  {
+    name: "Aptos Monkeys",
+    description: "A cult on Aptos for builders, community, and NFTs tools.",
+    icon: "/public/aptos-monkeys.png"
+  },
+  {
+    name: "Ethena",
+    description: "Ethena issues USDe, the third largest crypto dollar with $6b+ in TVL",
+    icon: "/public/ethena.png"
+  },
+  {
+    name: "GUI Gang",
+    description: "A PFP collection on Aptos, the heart and soul of GUI INU.",
+    icon: "/public/gui-gang.png"
+  },
+  {
+    name: "KGeN",
+    description: "Building the distribution layer of Web3 & AI.",
+    icon: "/public/kgen.png"
+  }
+];
+
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -55,6 +100,7 @@ export default function Dashboard() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -79,6 +125,21 @@ export default function Dashboard() {
       router.replace("/");
     }
   }, [connected, router]);
+
+  // Show overlay when searchQuery is not empty
+  useEffect(() => {
+    if (searchQuery.trim() !== "") {
+      setShowSearchOverlay(true);
+    } else {
+      setShowSearchOverlay(false);
+    }
+  }, [searchQuery]);
+
+  // Filter search results
+  const filteredResults = searchResultsMock.filter(pkg =>
+    pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pkg.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
@@ -152,6 +213,51 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Search Overlay Modal */}
+      {showSearchOverlay && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#07171b]/95 backdrop-blur-sm">
+          <div className="flex items-center px-8 py-6 border-b border-[#2a3538] relative">
+            <Search size={28} className="text-[#b0b0b0] mr-4" />
+            <input
+              type="text"
+              autoFocus
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search packages..."
+              className="flex-1 bg-transparent border-none outline-none text-2xl text-white placeholder:text-[#5c6a6e]"
+              style={{ fontWeight: 500 }}
+            />
+            <button
+              className="ml-4 p-2 rounded-full hover:bg-[#1a2326] transition-colors"
+              onClick={() => { setSearchQuery(""); setShowSearchOverlay(false); }}
+              aria-label="Close search"
+            >
+              <X size={28} className="text-[#b0b0b0]" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-8 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredResults.length === 0 ? (
+                <div className="col-span-2 text-center text-[#b0b0b0] text-lg mt-12">No results found.</div>
+              ) : (
+                filteredResults.map((pkg, idx) => (
+                  <div key={pkg.name} className="flex items-center gap-6 p-4 bg-[#0A0A0A] rounded-lg border border-[#2a3538] hover:bg-[#1a2326] transition-colors cursor-pointer">
+                    <div className="w-16 h-16 flex items-center justify-center bg-[#1a2326] rounded-md overflow-hidden">
+                      {/* Replace with <img src={pkg.icon} ... /> if you have icons */}
+                      <span className="text-3xl">🧩</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-xl text-white mb-1">{pkg.name}</div>
+                      <div className="text-[#b0b0b0] text-base leading-snug">{pkg.description}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="px-6 md:px-10 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -176,14 +282,14 @@ export default function Dashboard() {
                   {topPackages.map((pkg, index) => (
                     <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
                       <motion.div 
-                        className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
+                        className="group flex flex-col gap-2 p-4 rounded-lg transition-colors cursor-pointer"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
+                            <h3 className="font-semibold text-lg text-white group-hover:bg-gradient-to-r group-hover:from-[#eab08a] group-hover:via-[#a6d6d6] group-hover:to-[#eab08a] group-hover:text-transparent group-hover:bg-clip-text transition-all duration-200">{pkg.name}</h3>
                             <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
                           </div>
                           <Badge className="bg-[#3B82F6] text-white">{pkg.version}</Badge>
@@ -214,14 +320,14 @@ export default function Dashboard() {
                   {recentPackages.map((pkg, index) => (
                     <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
                       <motion.div 
-                        className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
+                        className="group flex flex-col gap-2 p-4 rounded-lg transition-colors cursor-pointer"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
+                            <h3 className="font-semibold text-lg text-white group-hover:bg-gradient-to-r group-hover:from-[#eab08a] group-hover:via-[#a6d6d6] group-hover:to-[#eab08a] group-hover:text-transparent group-hover:bg-clip-text transition-all duration-200">{pkg.name}</h3>
                             <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
                           </div>
                           <Badge className="bg-[#FB923C] text-white">{pkg.version}</Badge>
