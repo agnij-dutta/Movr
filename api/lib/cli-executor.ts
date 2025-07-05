@@ -18,64 +18,58 @@ export class CLIExecutor {
   
   constructor() {
     // Priority order for finding CLI:
-    // 1. In API directory (for Vercel deployment)
-    // 2. In parent project directory (for local development)
-    // 3. Relative to current file location
+    // 1. Local copied CLI (for Vercel deployment)
+    const localCliPath = path.join(process.cwd(), 'cli', 'dist', 'bin', 'cli.js');
+    // 2. Vercel task environment
+    const vercelCliPath = path.join('/var/task', 'cli', 'dist', 'bin', 'cli.js');
+    // 3. Development environment (parent directory)
+    const devCliPath = path.join(process.cwd(), '..', 'cli', 'dist', 'bin', 'cli.js');
     
-    const possiblePaths = [
-      // For Vercel deployment - CLI copied to api/cli/dist/bin/cli.js
-      path.join(process.cwd(), 'cli', 'dist', 'bin', 'cli.js'),
-      // For local development - parent directory structure
-      path.join(process.cwd(), '..', 'cli', 'dist', 'bin', 'cli.js'),
-      // Relative to this file
-      path.join(__dirname, '..', '..', 'cli', 'dist', 'bin', 'cli.js'),
-      // Binary fallback for local development
-      path.join(process.cwd(), '..', 'cli', 'cli_binaries', 'movr-linux'),
-    ];
-    
-    let cliFound = false;
-    for (const cliPath of possiblePaths) {
-      if (fs.existsSync(cliPath)) {
-        if (cliPath.endsWith('.js')) {
-          this.cliPath = `node ${cliPath}`;
-        } else {
-          this.cliPath = cliPath;
-        }
-        cliFound = true;
-        break;
-      }
+    if (fs.existsSync(localCliPath)) {
+      this.cliPath = `node ${localCliPath}`;
+      console.log('Using local CLI path:', localCliPath);
+    } else if (fs.existsSync(vercelCliPath)) {
+      this.cliPath = `node ${vercelCliPath}`;
+      console.log('Using Vercel CLI path:', vercelCliPath);
+    } else if (fs.existsSync(devCliPath)) {
+      this.cliPath = `node ${devCliPath}`;
+      console.log('Using development CLI path:', devCliPath);
+    } else {
+      console.error('CLI not found in any expected location');
+      console.error('Checked paths:', [localCliPath, vercelCliPath, devCliPath]);
+      this.cliPath = 'echo "CLI not found"';
     }
-    
-    if (!cliFound) {
-      throw new Error(`CLI executable not found. Checked paths: ${possiblePaths.join(', ')}`);
-    }
-    
-    console.log(`CLI path resolved to: ${this.cliPath}`);
   }
 
-  async executeCommand(command: string, args: string[] = [], options: any = {}): Promise<CLIResponse> {
+  private async executeCommand(command: string, args: string[] = [], options: any = {}): Promise<CLIResponse> {
+    const cmd = `${this.cliPath} ${command} ${args.join(' ')}`;
+    console.log('Executing CLI command:', cmd);
+    
     try {
-      const fullCommand = `${this.cliPath} ${command} ${args.join(' ')}`;
+      // Set NODE_PATH to include CLI's node_modules
+      const env = { 
+        ...process.env,
+        NODE_PATH: [
+          path.join(process.cwd(), 'cli', 'node_modules'),
+          path.join('/var/task', 'cli', 'node_modules'),
+          path.join(process.cwd(), '..', 'cli', 'node_modules'),
+          process.env.NODE_PATH
+        ].filter(Boolean).join(path.delimiter)
+      };
       
-      console.log(`Executing: ${fullCommand}`);
+      const { stdout, stderr } = await execAsync(cmd, { timeout: 30000, env });
       
-      const { stdout, stderr } = await execAsync(fullCommand, {
-        cwd: options.cwd || process.cwd(),
-        env: { ...process.env, ...options.env },
-        timeout: options.timeout || 30000, // 30 second timeout
-      });
-
-      // Try to parse stdout as JSON, fallback to string
-      let data;
+      // Try to parse JSON output, fallback to raw text
+      let parsedData;
       try {
-        data = JSON.parse(stdout);
+        parsedData = JSON.parse(stdout);
       } catch {
-        data = stdout.trim();
+        parsedData = stdout.trim();
       }
 
       return {
         success: true,
-        data,
+        data: parsedData,
         stdout: stdout.trim(),
         stderr: stderr.trim(),
       };
