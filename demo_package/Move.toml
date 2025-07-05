@@ -1,0 +1,18 @@
+[package]
+name = "demo_package"
+version = "1.0.0"
+authors = ["Agnij"]
+license = "MIT"
+
+[addresses]
+demo_package = "_"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "main" }
+AptosStdlib = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-stdlib/", rev = "main" }
+MoveStdlib = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/move-stdlib/", rev = "main" }
+
+[dev-dependencies]
+
+[dev-addresses]
+demo_package = "0x1"

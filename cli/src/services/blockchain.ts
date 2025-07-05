@@ -258,12 +258,18 @@ export class AptosBlockchainService {
         },
       });
 
-      if (!response || !response[0] || !(response[0] instanceof MoveVector)) {
+      const result = response && response[0];
+      let versions: any[] = [];
+      if (result && Array.isArray(result)) {
+        versions = result;
+      } else if (result && typeof result === 'object' && 'values' in result && Array.isArray(result.values)) {
+        versions = result.values.map((v: any) => v.value);
+        return versions;
+      } else {
         return [];
       }
-
-      const versions = response[0] as MoveVector<MoveString>;
-      return versions.values.map(v => v.value);
+      // If plain array, just return as is
+      return versions;
     } catch (error) {
       logger.error('Failed to get package versions', { name, error });
       throw createBlockchainError(
@@ -745,16 +751,21 @@ export class AptosBlockchainService {
         return [];
       }
       const results = listResponse[0];
-      if (!results || !(results instanceof MoveVector)) {
+      // Accept both MoveVector and plain array
+      let values: any[] = [];
+      if (results && Array.isArray(results)) {
+        values = results;
+      } else if (results && typeof results === 'object' && 'values' in results && Array.isArray(results.values)) {
+        values = results.values;
+      } else {
         return [];
       }
-      // Already parsed as PackageMetadata
-      return results.values.map(result => {
+      return values.map(result => {
         if (!result || typeof result !== 'object') {
           return null;
         }
-        const values = Object.values(result).map(value => value as MoveValue);
-        return this.parsePackageMetadata(values);
+        const parsed = Object.values(result).map(value => value as MoveValue);
+        return this.parsePackageMetadata(parsed);
       }).filter((pkg): pkg is PackageMetadata => pkg !== null);
     } catch (error) {
       logger.error('Failed to get all packages', { error });

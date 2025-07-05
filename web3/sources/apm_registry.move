@@ -503,16 +503,34 @@ module apm_registry::registry {
     public fun search_packages(query: String): vector<PackageMetadata> acquires PackageRegistry {
         let registry = borrow_global<PackageRegistry>(@apm_registry);
         let results = vector::empty<PackageMetadata>();
-        vector::for_each_ref(&registry.package_list, |pkg_id| {
-            let pkg = table::borrow(&registry.packages, *pkg_id);
-            let found = pkg.name == query
-                || pkg.description == query
-                || tags_contains_query(&pkg.tags, &query);
-            if (found) {
-                vector::push_back(&mut results, *pkg);
-            }
-        });
+        let n = vector::length(&registry.package_list);
+        search_packages_helper(registry, &query, 0, n, &mut results);
         results
+    }
+
+    fun search_packages_helper(
+        registry: &PackageRegistry,
+        query: &String,
+        i: u64,
+        n: u64,
+        results: &mut vector<PackageMetadata>
+    ) {
+        if (i >= n) {
+            return;
+        };
+        let pkg_id = *vector::borrow(&registry.package_list, i);
+        let pkg = table::borrow(&registry.packages, pkg_id);
+        if (string::length(query) == 0) {
+            vector::push_back(results, *pkg);
+        } else {
+            let found = pkg.name == *query
+                || pkg.description == *query
+                || tags_contains_query(&pkg.tags, query);
+            if (found) {
+                vector::push_back(results, *pkg);
+            }
+        };
+        search_packages_helper(registry, query, i + 1, n, results);
     }
 
     fun tags_contains_query(tags: &vector<String>, query: &String): bool {

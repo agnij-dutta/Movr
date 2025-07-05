@@ -1,0 +1,24 @@
+# Build outputs
+build/
+.aptos/
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# APM
+.apm/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
