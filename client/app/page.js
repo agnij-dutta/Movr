@@ -267,7 +267,7 @@ export default function MovrLanding() {
               </>
             ) : (
               <>
-                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent" onClick={() => setIsModalOpen(true)}>
+                <Button variant="outline" className="get-started-btn border-white/20 text-white bg-transparent" onClick={() => setIsModalOpen(true)}>
                   Get Started
                 </Button>
                 {!connected && userOS === 'windows' && (
@@ -311,14 +311,14 @@ export default function MovrLanding() {
         <div className="relative z-10 px-6 lg:px-12 pt-32 pb-32">
           <div className="max-w-4xl">
             <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight">
-             Discover & compose trusted Move packages  
+            Build with confidence. Publish with purpose.
               
             </h1>
             <p className="text-xl text-gray-200 mb-12 max-w-2xl leading-relaxed">
-            Movr is the decentralized registry for Move packages — with onchain metadata, audit trails, reproducible builds, and a growing graph of trusted dependencies
+            Movr is the trust layer of the Move ecosystem — discover reusable packages, verify audits, and publish your code to the world.
             </p>
             <div className="flex gap-4 mb-16">
-              <Button size="lg" className="bg-white text-slate-900 hover:bg-gray-100 px-8" onClick={() => setIsModalOpen(true)}>
+              <Button size="lg" className="get-started-btn bg-white text-slate-900 px-8" onClick={() => setIsModalOpen(true)}>
                 Get Started
               </Button>
               {!connected && userOS === 'windows' && (
@@ -398,12 +398,10 @@ export default function MovrLanding() {
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent z-[1]"></div>
         <div className="relative z-10 text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Built for modern teams
+            Built for the next generation of Move teams
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Crafted with customizability and collaboration in mind.
-            <br />
-            Designed to impress.
+          Find trusted modules, contribute to the ecosystem, and speed up your dev workflow
           </p>
         </div>
 
@@ -423,7 +421,7 @@ export default function MovrLanding() {
                   <div className="bg-slate-800/80 h-16 rounded-md"></div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Beautiful out of the box</h3>
+              <h3 className="text-xl font-bold text-white mb-3">Effortless, beautiful by default</h3>
             </CardContent>
           </Card>
 
@@ -447,7 +445,7 @@ export default function MovrLanding() {
                   </div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Built for collaboration</h3>
+              <h3 className="text-xl font-bold text-white mb-3">Collaboration, reimagined for Web3</h3>
             </CardContent>
           </Card>
 
@@ -467,7 +465,7 @@ export default function MovrLanding() {
                   </div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Designed for conversion</h3>
+              <h3 className="text-xl font-bold text-white mb-3">Optimized for adoption</h3>
             </CardContent>
           </Card>
         </div>
@@ -501,15 +499,15 @@ export default function MovrLanding() {
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div>
               <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-                Web Editor
+              We didnt reinvent the wheel
+              <br />
+              We just gave it power steering.
               </h2>
               <p className="text-xl text-gray-200 mb-8 leading-relaxed">
-                Create, edit, and publish documentation with a drag and drop interface. No
-                git needed to collaborate with developers.
+              Skip the boilerplate, skip the bugs. <br />
+              Use Movr and ship smarter.
               </p>
-              <Button className="bg-white text-slate-900 hover:bg-gray-100">
-                Learn more
-              </Button>
+              
             </div>
             
             <div className="relative">
@@ -607,21 +605,20 @@ export default function MovrLanding() {
             
             <div className="order-1 lg:order-2">
               <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-                Built for collaboration
+                Secure, global collaboration for Move
               </h2>
               <p className="text-xl text-gray-200 mb-8 leading-relaxed">
-                Empower your team with workflows that meet you where you are, whether you
-                prefer git sync or a WYSIWYG experience.
+              Whether your cofounder is in Berlin or Bangalore, Movr keeps your Move stack verified, versioned, and untouchable.
               </p>
 
               <div className="space-y-6 mt-12">
                 <div className="flex items-center gap-3 text-white font-medium pb-3 border-b border-teal-800/30">
                   <Terminal className="w-5 h-5 text-teal-400" />
-                  <span>Codebase-syncing</span>
+                  <span>On-Chain Package Verification</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300">
                   <Globe className="w-5 h-5 text-teal-400" />
-                  <span>Web editor</span>
+                  <span>Composable Move Modules, Instantly</span>
                 </div>
               </div>
             </div>
@@ -645,26 +642,37 @@ export default function MovrLanding() {
           <div className="absolute inset-0 bg-[url('/globe.svg')] bg-no-repeat bg-center opacity-5 z-[1]"></div>
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <h2 className="text-4xl lg:text-5xl font-bold text-base-100 mb-6 leading-tight">
-              Experience the workflow the best
-              <br />
-              development teams love.
+              The workflow meant for top Aptos teams
+              
             </h2>
             <p className="text-xl text-base-50 mb-12 max-w-2xl mx-auto">
-              Let your team focus on building amazing products instead of managing 
-              documentation with our AI-powered platform.
+              Movr lets your team focus on building breakthrough products, not managing dependencies 
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <Button size="lg" className="bg-accent-blue hover:bg-accent-blue-dark text-base-100 px-8 w-full transition-all duration-300 font-medium py-6 text-lg">
-                Sign Up
-              </Button>
-              <Button size="lg" variant="outline" className="border-accent-blue/30 text-accent-blue hover:bg-accent-blue/10 px-8 w-full transition-all duration-300 bg-transparent font-medium py-6 text-lg">
-                Request Demo
-              </Button>
+              {/* Large Download Button for OS */}
+              {!connected && userOS === 'windows' && (
+                <Button
+                  size="lg"
+                  className="text-black text-xl py-7 px-10 mt-2 sm:mt-0 bg-[#d6ff4b] hover:bg-[#c0e63e] hover:text-[#232b3b] hover:shadow-[0_0_24px_8px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2 w-full"
+                  onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.bat', 'install.bat')}
+                >
+                  <Download size={24} className="mr-2" /> Download for Windows
+                </Button>
+              )}
+              {!connected && userOS === 'linux' && (
+                <Button
+                  size="lg"
+                  className="text-white text-xl py-7 px-10 mt-2 sm:mt-0 bg-[#d6ff4b] hover:bg-[#c0e63e] hover:text-[#232b3b] hover:shadow-[0_0_24px_8px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2 w-full"
+                  onClick={() => handleDownload('https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.sh', 'install.sh')}
+                >
+                  <Download size={24} className="mr-2" /> Download for Linux
+                </Button>
+              )}
             </div>
             
             <div className="mt-8 text-base-30 text-sm">
-              No credit card required • Free 14-day trial
+              No credit card required • Free forever for open source • 14-day Pro trial
             </div>
           </div>
         </div>
@@ -676,17 +684,17 @@ export default function MovrLanding() {
       <footer className="border-t border-teal-800/30 px-6 lg:px-12 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} MPM. All rights reserved.
+            © {new Date().getFullYear()} Movr. All rights reserved.
           </p>
           <nav className="flex gap-6 text-sm">
             <Link href="#" className="text-gray-400 hover:text-white">
               Terms of Service
             </Link>
             <Link href="#" className="text-gray-400 hover:text-white">
-              Privacy
+              Privacy Policy
             </Link>
             <Link href="#" className="text-gray-400 hover:text-white">
-              Documentation
+              Developer Docs
             </Link>
           </nav>
         </div>

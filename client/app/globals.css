@@ -187,3 +187,12 @@
   font-weight: 700;
   letter-spacing: -0.5px;
 }
+
+/* Custom style for Get Started button hover */
+.get-started-btn {
+  @apply transition-all;
+}
+.get-started-btn:hover {
+  background-color: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+}
