@@ -117,9 +117,13 @@ export default function PackageDetails({ params }) {
         {/* Links Row */}
         <div className="flex flex-wrap gap-4 mb-2">
           {/* Website */}
-          <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-white text-[#111] font-semibold text-base rounded-[3px] shadow-[2px_2px_0_0_#222] transition-colors duration-150 min-w-[180px] justify-between hover:bg-white hover:text-black focus:bg-white">
-            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#111" strokeWidth="2"/><path d="M2 12h20M12 2c2.5 3.5 2.5 14.5 0 20M4.93 4.93c4.5 2.5 9.64 2.5 14.14 0M4.93 19.07c4.5-2.5 9.64-2.5 14.14 0" stroke="#111" strokeWidth="2"/></svg> Website</span>
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-[#b0b0b0] bg-[#232b3b] text-white font-semibold text-base rounded-[8px] shadow-lg min-w-[180px] justify-between transition-all duration-200 hover:border-[#d6ff4b] hover:text-[#d6ff4b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] focus:border-[#d6ff4b] focus:text-[#d6ff4b] focus:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)]">
+            <span className="flex items-center gap-2 text-white group-hover:text-[#d6ff4b] group-focus:text-[#d6ff4b]">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M2 12h20M12 2c2.5 3.5 2.5 14.5 0 20M4.93 4.93c4.5 2.5 9.64 2.5 14.14 0M4.93 19.07c4.5-2.5 9.64-2.5 14.14 0" stroke="currentColor" strokeWidth="2"/></svg> Website
+            </span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white group-hover:text-[#d6ff4b] group-focus:text-[#d6ff4b]">
+              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </a>
           {/* Discord */}
           <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-transparent text-white font-semibold text-base rounded-[3px] min-w-[180px] justify-between hover:bg-white hover:text-black transition-colors duration-150">
