@@ -62,23 +62,68 @@ cli/
 
 ### Key Commands
 
-- `apm init`: Initialize a new Move package
-- `apm publish`: Publish a package to the registry
-- `apm install`: Install a package from the registry
-- `apm search`: Search for packages
-- `apm endorse`: Endorse a package as a validator
+- `movr init`: Initialize a new Move package
+- `movr publish`: Publish a package to the registry
+- `movr install`: Install a package from the registry
+- `movr search`: Search for packages
+- `movr endorse`: Endorse a package as a validator
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - [Aptos CLI](https://aptos.dev/cli-tools/aptos-cli-tool/install-aptos-cli)
-- Rust toolchain (for CLI development)
 - Access to the Aptos network (devnet/testnet/mainnet)
+
+### Installation
+
+#### Linux & macOS
+```bash
+curl -fsSL https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.sh | sh
+```
+
+#### Windows
+
+**Option 1: PowerShell (Recommended)**
+```powershell
+# Download and run the PowerShell installer
+irm https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.ps1 | iex
+```
+
+**Option 2: Batch Script**
+```cmd
+# Download install.bat and run it
+curl -O https://raw.githubusercontent.com/agnij-dutta/Movr/main/install.bat && install.bat
+```
+
+**Option 3: Manual Installation**
+1. Download `movr-win.exe` from the [latest release](https://github.com/agnij-dutta/Movr/releases/latest)
+2. Rename it to `movr.exe` and place it in a folder like `C:\Program Files\movr\`
+3. Add that folder to your system PATH
 
 ### Using the CLI
 
-See the [CLI README](cli/README.md) for detailed usage instructions.
+Once installed, you can use the `movr` command:
+
+```bash
+# View available commands
+movr --help
+
+# Initialize a new Move package
+movr init my-package
+
+# Search for packages
+movr search utility
+
+# Publish a package (requires package-path)
+movr publish --package-path ./my-package
+
+# Install a package
+movr install some-package
+
+# Endorse a package (requires endorser registration)
+movr endorse package-name
+```
 
 ### Working with the Contracts
 
