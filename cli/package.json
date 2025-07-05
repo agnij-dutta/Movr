@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "apm": "dist/bin/cli.js"
+    "movr": "dist/bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
