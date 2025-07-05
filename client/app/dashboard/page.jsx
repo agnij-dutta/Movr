@@ -174,7 +174,7 @@ export default function Dashboard() {
             Package Dashboard
           </h1>
           <p className="text-xl md:text-2xl text-[#b0b0b0] font-normal max-w-2xl " style={{ fontFamily: 'Inter, sans-serif' }}>
-            pick the perfect package for your need
+            Pick the perfect package for your need
           </p>
         </div>
         <div className="absolute left-0 right-0 bottom-0 h-4 md:h-6" style={{
