@@ -25,6 +25,8 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react"
 import { WalletModal } from "@/components/WalletModal"
 import { useRouter } from "next/navigation"
 import WalletAddressButton from "@/components/ui/WalletAddressButton"
+import React from "react"
+import { Compare } from "@/components/ui/compare"
 
 export default function MovrLanding() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -223,15 +225,7 @@ export default function MovrLanding() {
             <div className="text-2xl logo-font text-white">Movr</div>
           </Link>
           <nav className="ml-auto flex gap-8 text-sm">
-            <Link href="#" className="text-gray-200 hover:text-white transition-colors">
-              Documentation
-            </Link>
-            <Link href="#" className="text-gray-200 hover:text-white transition-colors">
-              Resources
-            </Link>
-            <Link href="#" className="text-gray-200 hover:text-white transition-colors">
-              Pricing
-            </Link>
+            {/* Removed Documentation, Resources, Pricing links */}
           </nav>
           <div className="ml-8 flex gap-3">
             {connected ? (
@@ -245,14 +239,10 @@ export default function MovrLanding() {
               </>
             ) : (
               <>
-                <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => setIsModalOpen(true)}>
-                  Login
-                </Button>
-                <Button className="bg-white text-slate-900 hover:bg-gray-100" onClick={() => setIsModalOpen(true)}>
-                  Get a demo
-                </Button>
+               
+               
                 <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent" onClick={() => setIsModalOpen(true)}>
-                  Sign up
+                  Get Started
                 </Button>
               </>
             )}
@@ -285,11 +275,9 @@ export default function MovrLanding() {
             </p>
             <div className="flex gap-4 mb-16">
               <Button size="lg" className="bg-white text-slate-900 hover:bg-gray-100 px-8" onClick={() => setIsModalOpen(true)}>
-                Try for free
+                Get Started
               </Button>
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 bg-transparent" onClick={() => setIsModalOpen(true)}>
-                Get a demo
-              </Button>
+             
             </div>
           </div>
 
@@ -441,7 +429,16 @@ export default function MovrLanding() {
             <div className="relative">
               <Card className="mintlify-card rounded-xl overflow-hidden border-0 transform rotate-2 hover:rotate-0 transition-transform duration-300">
                 <CardContent className="p-0">
-                  <img src="/window.svg" alt="Web Editor" className="w-full h-auto" />
+                  <div className="p-4 border rounded-3xl dark:bg-neutral-900 bg-neutral-100  border-neutral-200 dark:border-neutral-800 px-4">
+                    <Compare
+                      firstImage="https://assets.aceternity.com/code-problem.png"
+                      secondImage="https://assets.aceternity.com/code-solution.png"
+                      firstImageClassName="object-cover object-left-top"
+                      secondImageClassname="object-cover object-left-top"
+                      className="h-[250px] w-[200px] md:h-[500px] md:w-[500px]"
+                      slideMode="hover"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
