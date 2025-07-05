@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 REM Batch installation script for movr CLI
 REM Usage: install.bat
 
-set "VERSION=v1.0.0"
+set "VERSION=v1.01"
 set "GITHUB_REPO=agnij-dutta/Movr"
 set "DOWNLOAD_URL=https://github.com/%GITHUB_REPO%/releases/download/%VERSION%/movr-win.exe"
 set "INSTALL_DIR=%LOCALAPPDATA%\movr"
