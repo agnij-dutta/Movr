@@ -300,7 +300,6 @@ export default function Dashboard() {
                     <TrendingUp className="text-[#4ADE80]" size={20} />
                     Top Packages
                   </CardTitle>
-                  <Button variant="ghost" size="sm">View all</Button>
                 </CardHeader>
                 <CardContent className="space-y-5 pb-6">
                   {topPackages.map((pkg, index) => (
@@ -338,7 +337,7 @@ export default function Dashboard() {
                     <Clock className="text-[#FB923C]" size={20} />
                     Recent Packages
                   </CardTitle>
-                  <Button variant="ghost" size="sm">View all</Button>
+               
                 </CardHeader>
                 <CardContent className="space-y-5 pb-6">
                   {recentPackages.map((pkg, index) => (
