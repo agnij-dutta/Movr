@@ -99,10 +99,10 @@ export default function Dashboard() {
         {/* Wallet Address Display - Top Right */}
         {connected && account?.address && (
           <div className="absolute top-6 right-8 z-20 flex items-center gap-2">
-            <Button variant="ghost" className="text-white hover:bg-white/10">
+            <Button variant="ghost" className="text-white hover:bg-white hover:text-black" >
               {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
             </Button>
-            <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-gray-100" size="sm">
+            <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-white hover:text-black" size="sm">
               Logout
             </Button>
           </div>
