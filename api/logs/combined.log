@@ -31,3 +31,38 @@
 {"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 00:45:37:4537"}
 {"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 00:45:37:4537"}
 {"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 00:45:37:4537"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration loaded","timestamp":"2025-07-06 02:46:12:4612"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration loaded","timestamp":"2025-07-06 02:46:23:4623"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:46:23:4623"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:46:23:4623"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:46:23:4623"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:46:23:4623"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:23:4623"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration loaded","timestamp":"2025-07-06 02:46:59:4659"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:46:59:4659"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:46:59:4659"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:46:59:4659"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:46:59:4659"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:46:59:4659"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration loaded","timestamp":"2025-07-06 02:48:09:489"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration loaded","timestamp":"2025-07-06 02:48:28:4828"}
+{"configPath":"/home/agnij/.apm/config.json","level":"debug","message":"Configuration service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:48:28:4828"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:48:28:4828"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}
+{"level":"info","message":"Using Pinata SDK with JWT for authentication","timestamp":"2025-07-06 02:48:28:4828"}
+{"gatewayUrl":"aquamarine-defiant-woodpecker-351.mypinata.cloud","level":"info","message":"IPFS service initialized","timestamp":"2025-07-06 02:48:28:4828"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}
+{"contractAddress":"0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34","level":"info","message":"Blockchain service initialized","network":"devnet","timestamp":"2025-07-06 02:48:28:4828"}

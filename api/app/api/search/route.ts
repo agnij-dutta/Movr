@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { query, options = {} } = body;
 
-    if (!query) {
+    if (query === undefined || query === null) {
       return NextResponse.json(
         { success: false, error: 'Search query is required' },
         { status: 400 }
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const network = searchParams.get('network');
     const verbose = searchParams.get('verbose') === 'true';
 
-    if (!query) {
+    if (query === undefined || query === null) {
       return NextResponse.json(
         { success: false, error: 'Search query is required' },
         { status: 400 }

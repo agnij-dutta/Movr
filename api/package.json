@@ -6,7 +6,7 @@
     "dev": "next dev -p 3001",
     "prebuild": "npm run copy-cli",
     "build": "next build",
-    "copy-cli": "mkdir -p cli && cp -r ../cli/dist cli/ && cp -r ../cli/node_modules cli/ 2>/dev/null || true",
+    "copy-cli": "mkdir -p cli && cp -r ../cli/dist cli/ && cp ../cli/package.json cli/ && cp -r ../cli/node_modules cli/ 2>/dev/null || true",
     "start": "next start -p 3001",
     "lint": "next lint"
   },

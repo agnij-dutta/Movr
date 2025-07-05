@@ -14,36 +14,40 @@ export interface CLIResponse {
 }
 
 export class CLIExecutor {
-  private cliPath: string;
+  private cliPath: string = '';
   
   constructor() {
-    // Get project root directory (parent of api)
-    const PROJECT_ROOT = path.resolve(process.cwd(), '..');
-    const CLI_DIST_PATH = path.join(PROJECT_ROOT, 'cli', 'dist', 'bin', 'cli.js');
+    // Priority order for finding CLI:
+    // 1. In API directory (for Vercel deployment)
+    // 2. In parent project directory (for local development)
+    // 3. Relative to current file location
     
-    // Check if the CLI dist file exists
-    if (fs.existsSync(CLI_DIST_PATH)) {
-      this.cliPath = `node ${CLI_DIST_PATH}`;
-    } else {
-      // Fallback: try to find CLI in current directory structure
-      const localCliPath = path.join(process.cwd(), 'cli', 'dist', 'bin', 'cli.js');
-      if (fs.existsSync(localCliPath)) {
-        this.cliPath = `node ${localCliPath}`;
-      } else {
-        // Last resort: try relative to api directory
-        const relativeCliPath = path.join(__dirname, '..', '..', 'cli', 'dist', 'bin', 'cli.js');
-        if (fs.existsSync(relativeCliPath)) {
-          this.cliPath = `node ${relativeCliPath}`;
+    const possiblePaths = [
+      // For Vercel deployment - CLI copied to api/cli/dist/bin/cli.js
+      path.join(process.cwd(), 'cli', 'dist', 'bin', 'cli.js'),
+      // For local development - parent directory structure
+      path.join(process.cwd(), '..', 'cli', 'dist', 'bin', 'cli.js'),
+      // Relative to this file
+      path.join(__dirname, '..', '..', 'cli', 'dist', 'bin', 'cli.js'),
+      // Binary fallback for local development
+      path.join(process.cwd(), '..', 'cli', 'cli_binaries', 'movr-linux'),
+    ];
+    
+    let cliFound = false;
+    for (const cliPath of possiblePaths) {
+      if (fs.existsSync(cliPath)) {
+        if (cliPath.endsWith('.js')) {
+          this.cliPath = `node ${cliPath}`;
         } else {
-          // If no CLI found, we'll have to use the binary approach
-          const binaryPath = path.join(PROJECT_ROOT, 'cli', 'cli_binaries', 'movr-linux');
-          if (fs.existsSync(binaryPath)) {
-            this.cliPath = binaryPath;
-          } else {
-            throw new Error('CLI executable not found. Please ensure the CLI is built and available.');
-          }
+          this.cliPath = cliPath;
         }
+        cliFound = true;
+        break;
       }
+    }
+    
+    if (!cliFound) {
+      throw new Error(`CLI executable not found. Checked paths: ${possiblePaths.join(', ')}`);
     }
     
     console.log(`CLI path resolved to: ${this.cliPath}`);
@@ -112,7 +116,7 @@ export class CLIExecutor {
   }
 
   async search(query: string, options: any = {}): Promise<CLIResponse> {
-    const args = [query];
+    const args = [`"${query}"`];
     if (options.network) args.push('--network', options.network);
     if (options.verbose) args.push('--verbose');
     

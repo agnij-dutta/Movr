@@ -19,6 +19,6 @@ export async function searchPackages(query, options = {}) {
  * Convenience helper for fetching the full package list.
  */
 export async function getAllPackages(options = {}) {
-  // An empty query string would be rejected by the backend, so use a single space.
-  return searchPackages(' ', options);
+  // Use an empty string to get all packages
+  return searchPackages('', options);
 } 
