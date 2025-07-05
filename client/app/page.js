@@ -20,13 +20,15 @@ import {
   ChevronRight
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useWallet } from "@aptos-labs/wallet-adapter-react"
 import { WalletModal } from "@/components/WalletModal"
+import { useRouter } from "next/navigation"
 
-export default function APMLanding() {
+export default function MovrLanding() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { account, disconnect, connected } = useWallet()
+  const router = useRouter();
   const tabs = [
     {
       key: "guides",
@@ -70,7 +72,7 @@ export default function APMLanding() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <span className="text-gray-300 text-sm">APM</span>
+              <span className="text-gray-300 text-sm">Movr</span>
             </div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-6">
@@ -203,6 +205,13 @@ export default function APMLanding() {
   ];
   const [activeTab, setActiveTab] = useState("ai-chat");
 
+  // Redirect to /dashboard if wallet is connected
+  useEffect(() => {
+    if (connected) {
+      router.push("/dashboard");
+    }
+  }, [connected, router]);
+
   return (
     <div className="min-h-screen mintlify-bg text-white">
       {/* Header */}
@@ -210,7 +219,7 @@ export default function APMLanding() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent"></div>
         <div className="relative z-10 flex items-center w-full">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="text-2xl logo-font text-white">mpm</div>
+            <div className="text-2xl logo-font text-white">Movr</div>
           </Link>
           <nav className="ml-auto flex gap-8 text-sm">
             <Link href="#" className="text-gray-200 hover:text-white transition-colors">
@@ -267,7 +276,7 @@ export default function APMLanding() {
               
             </h1>
             <p className="text-xl text-gray-200 mb-12 max-w-2xl leading-relaxed">
-            APM is the decentralized registry for Move packages — with onchain metadata, audit trails, reproducible builds, and a growing graph of trusted dependencies
+            Movr is the decentralized registry for Move packages — with onchain metadata, audit trails, reproducible builds, and a growing graph of trusted dependencies
             </p>
             <div className="flex gap-4 mb-16">
               <Button size="lg" className="bg-white text-slate-900 hover:bg-gray-100 px-8" onClick={() => setIsModalOpen(true)}>
@@ -496,7 +505,7 @@ export default function APMLanding() {
                     <div className="flex items-center text-gray-500 text-xs my-2">
                       <span>9</span>
                     </div>
-                    <div className="text-white">Mintlify integrates with the GitHub API,</div>
+                    <div className="text-white">Movr integrates with the GitHub API,</div>
                     <div className="flex items-center text-gray-500 text-xs my-2">
                       <span>10</span>
                     </div>

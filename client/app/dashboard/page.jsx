@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { 
   Package, 
@@ -10,13 +10,18 @@ import {
   TrendingUp, 
   Star, 
   Clock, 
-  Filter 
+  Filter,
+  Copy,
+  LogOut,
+  ChevronDown
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { useRouter } from "next/navigation";
 
 // Mock data for packages
 const topPackages = [
@@ -46,44 +51,95 @@ const fadeIn = {
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { account, disconnect, connected } = useWallet();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const router = useRouter();
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
+  // Redirect to landing if not connected
+  useEffect(() => {
+    if (!connected) {
+      router.replace("/");
+    }
+  }, [connected, router]);
 
   return (
-    <div className="min-h-screen bg-[--background] text-[--foreground]" style={{ 
-      backgroundColor: "#0A0A0A",  // primary.background from Design.json
-      color: "#FFFFFF"  // primary.text from Design.json
-    }}>
-      {/* Header Section */}
-      <motion.header 
-        className="py-8 px-6 md:px-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="flex flex-col gap-6">
-          <h1 className="text-4xl font-extrabold tracking-tight">Package Dashboard</h1>
-          <p className="text-[#B0B0B0] max-w-3xl">
-            Discover, explore and manage packages in your application. Search for packages, view trending ones, and check download statistics.
+    <div className="min-h-screen bg-[#0A0A0A] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
+      <div className="absolute inset-0 w-full h-full -z-20 pointer-events-none select-none" style={{
+        backgroundImage: 'url(/dash-back.jpeg)',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+      }} />
+      {/* Hero Section */}
+      <section className="relative flex flex-col items-center justify-center text-center min-h-[340px] md:min-h-[400px] px-4 md:px-0 overflow-hidden" style={{ zIndex: 1 }}>
+        <div className="absolute inset-0 w-full h-full" style={{
+          background: 'url(/1hero.jpg) center/cover no-repeat',
+          opacity: 0.25,
+          zIndex: 0
+        }} />
+        <div className="relative z-10 flex flex-col items-center md:items-start justify-center w-full max-w-5xl mx-auto pt-16 pb-12 text-center md:text-right">
+          <span className="tracking-widest text-[#7b8a8e] text-xs md:text-sm mb-4 uppercase" style={{ letterSpacing: '0.2em' }}>MOVR</span>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+            Package Dashboard
+          </h1>
+          <p className="text-xl md:text-2xl text-[#b0b0b0] font-normal max-w-2xl " style={{ fontFamily: 'Inter, sans-serif' }}>
+            pick the perfect package for your need
           </p>
-          
-          {/* Search and Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#808080]" size={18} />
-              <Input
-                type="text"
-                placeholder="Search packages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-[#1A1A1A] border-[#808080]/20 focus:border-[#3B82F6] h-12 rounded-xl"
-              />
-            </div>
-            <Button variant="outline" className="gap-2 h-12 bg-[#1A1A1A] border-[#808080]/20">
-              <Filter size={18} />
-              <span>Filter</span>
-            </Button>
-          </div>
         </div>
-      </motion.header>
+        <div className="absolute left-0 right-0 bottom-0 h-4 md:h-6" style={{
+          background: 'linear-gradient(90deg, #eab08a 0%, #a6d6d6 50%, #eab08a 100%)',
+          opacity: 0.5
+        }} />
+      </section>
+
+      {/* Tag Selector Bar */}
+      <div className="w-full flex justify-center items-center mt-4 mb-8">
+        <div className="w-11/12 max-w-6xl flex flex-wrap gap-2 md:gap-3 items-center justify-start">
+          {['All','RPC','Stablecoins','Explorers','Bridges','Wallets','DeFi','NFT','Tooling','Oracles','Analytics','Gaming','NFT Tooling','Security','Marketplaces','Launchpads','Infra','Social','Education','AI','Hardware'].map((tag, idx) => (
+            <button
+              key={tag}
+              className={`px-4 py-2 border border-[#2a3538] rounded-sm font-medium text-base md:text-lg transition-colors duration-150 ${idx === 0 ? 'bg-[#1a2326] text-white border-[#b0b0b0]' : 'bg-transparent text-[#b0b0b0] hover:bg-[#1a2326] hover:text-white'} `}
+              style={{ fontFamily: 'Inter, sans-serif', minWidth: '90px', letterSpacing: '0.01em' }}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="w-full flex justify-center items-center mt-2 mb-8">
+        <div className="w-3/4 max-w-5xl flex items-center bg-[#07171b] border border-[#2a3538] rounded-sm px-6 py-3" style={{ minHeight: '60px' }}>
+          <Search size={32} className="text-[#b0b0b0] mr-4" />
+          <Input
+            type="text"
+            placeholder="Search 213 projects"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none outline-none shadow-none text-xl text-[#b0b0b0] placeholder:text-[#5c6a6e] focus:ring-0 focus:outline-none flex-1 px-0"
+            style={{ fontWeight: 400, fontSize: '1.5rem', background: 'transparent' }}
+          />
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="px-6 md:px-10 pb-10">
@@ -95,73 +151,79 @@ export default function Dashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2">
-                  <TrendingUp className="text-[#4ADE80]" size={20} />
-                  Top Packages
-                </CardTitle>
-                <Button variant="ghost" size="sm">View all</Button>
-              </CardHeader>
-              <CardContent className="space-y-5 pb-6">
-                {topPackages.map((pkg, index) => (
-                  <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
-                    <motion.div 
-                      className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
-                          <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <TrendingUp className="text-[#4ADE80]" size={20} />
+                    Top Packages
+                  </CardTitle>
+                  <Button variant="ghost" size="sm">View all</Button>
+                </CardHeader>
+                <CardContent className="space-y-5 pb-6">
+                  {topPackages.map((pkg, index) => (
+                    <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
+                      <motion.div 
+                        className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
+                            <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
+                          </div>
+                          <Badge className="bg-[#3B82F6] text-white">{pkg.version}</Badge>
                         </div>
-                        <Badge className="bg-[#3B82F6] text-white">{pkg.version}</Badge>
-                      </div>
-                      <div className="flex items-center gap-1 text-[#B0B0B0] text-sm">
-                        <Download size={14} />
-                        <span>{pkg.downloads}</span>
-                      </div>
-                    </motion.div>
-                  </Link>
-                ))}
-              </CardContent>
+                        <div className="flex items-center gap-1 text-[#B0B0B0] text-sm">
+                          <Download size={14} />
+                          <span>{pkg.downloads}</span>
+                        </div>
+                      </motion.div>
+                    </Link>
+                  ))}
+                </CardContent>
+              </div>
             </Card>
 
             {/* Recent Packages */}
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2">
-                  <Clock className="text-[#FB923C]" size={20} />
-                  Recent Packages
-                </CardTitle>
-                <Button variant="ghost" size="sm">View all</Button>
-              </CardHeader>
-              <CardContent className="space-y-5 pb-6">
-                {recentPackages.map((pkg, index) => (
-                  <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
-                    <motion.div 
-                      className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
-                          <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <Clock className="text-[#FB923C]" size={20} />
+                    Recent Packages
+                  </CardTitle>
+                  <Button variant="ghost" size="sm">View all</Button>
+                </CardHeader>
+                <CardContent className="space-y-5 pb-6">
+                  {recentPackages.map((pkg, index) => (
+                    <Link key={pkg.name} href={`/dashboard/package/${pkg.name}`}>
+                      <motion.div 
+                        className="flex flex-col gap-2 p-4 rounded-lg hover:bg-[#3A3A3A] transition-colors cursor-pointer"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg text-white">{pkg.name}</h3>
+                            <p className="text-[#B0B0B0] text-sm mt-1">{pkg.description}</p>
+                          </div>
+                          <Badge className="bg-[#FB923C] text-white">{pkg.version}</Badge>
                         </div>
-                        <Badge className="bg-[#FB923C] text-white">{pkg.version}</Badge>
-                      </div>
-                      <div className="flex items-center gap-1 text-[#B0B0B0] text-sm">
-                        <Download size={14} />
-                        <span>{pkg.downloads}</span>
-                      </div>
-                    </motion.div>
-                  </Link>
-                ))}
-              </CardContent>
+                        <div className="flex items-center gap-1 text-[#B0B0B0] text-sm">
+                          <Download size={14} />
+                          <span>{pkg.downloads}</span>
+                        </div>
+                      </motion.div>
+                    </Link>
+                  ))}
+                </CardContent>
+              </div>
             </Card>
           </motion.div>
 
@@ -173,109 +235,118 @@ export default function Dashboard() {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             {/* Popular Tags */}
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2">
-                  <Tag className="text-[#A855F7]" size={20} />
-                  Popular Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-6">
-                <div className="flex flex-wrap gap-2">
-                  {popularTags.map((tag, index) => (
-                    <motion.div 
-                      key={tag}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <Badge 
-                        variant="outline" 
-                        className="bg-[#1A1A1A] hover:bg-[#3A3A3A] cursor-pointer transition-colors text-[#B0B0B0] hover:text-white border-[#808080]/20"
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader>
+                  <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <Tag className="text-[#A855F7]" size={20} />
+                    Popular Tags
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-6">
+                  <div className="flex flex-wrap gap-2">
+                    {popularTags.map((tag, index) => (
+                      <motion.div 
+                        key={tag}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        {tag}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
+                        <Badge 
+                          variant="outline" 
+                          className="bg-[#1A1A1A] hover:bg-[#3A3A3A] cursor-pointer transition-colors text-[#B0B0B0] hover:text-white border-[#808080]/20"
+                        >
+                          {tag}
+                        </Badge>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Package Stats */}
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2">
-                  <Package className="text-[#3B82F6]" size={20} />
-                  Package Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 pb-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <motion.div 
-                    className="bg-[#1A1A1A] p-4 rounded-lg"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <p className="text-[#B0B0B0] text-sm">Total Packages</p>
-                    <p className="text-2xl font-bold text-white mt-1">284</p>
-                  </motion.div>
-                  <motion.div 
-                    className="bg-[#1A1A1A] p-4 rounded-lg"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
-                  >
-                    <p className="text-[#B0B0B0] text-sm">Downloads</p>
-                    <p className="text-2xl font-bold text-white mt-1">42.8M</p>
-                  </motion.div>
-                  <motion.div 
-                    className="bg-[#1A1A1A] p-4 rounded-lg"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                  >
-                    <p className="text-[#B0B0B0] text-sm">Active</p>
-                    <p className="text-2xl font-bold text-white mt-1">189</p>
-                  </motion.div>
-                  <motion.div 
-                    className="bg-[#1A1A1A] p-4 rounded-lg"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.3 }}
-                  >
-                    <p className="text-[#B0B0B0] text-sm">Updates</p>
-                    <p className="text-2xl font-bold text-white mt-1">56</p>
-                  </motion.div>
-                </div>
-              </CardContent>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader>
+                  <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <Package className="text-[#3B82F6]" size={20} />
+                    Package Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 pb-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <motion.div 
+                      className="bg-[#1A1A1A] p-4 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p className="text-[#B0B0B0] text-sm">Total Packages</p>
+                      <p className="text-2xl font-bold text-white mt-1">284</p>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-[#1A1A1A] p-4 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                    >
+                      <p className="text-[#B0B0B0] text-sm">Downloads</p>
+                      <p className="text-2xl font-bold text-white mt-1">42.8M</p>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-[#1A1A1A] p-4 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    >
+                      <p className="text-[#B0B0B0] text-sm">Active</p>
+                      <p className="text-2xl font-bold text-white mt-1">189</p>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-[#1A1A1A] p-4 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      <p className="text-[#B0B0B0] text-sm">Updates</p>
+                      <p className="text-2xl font-bold text-white mt-1">56</p>
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Most Starred */}
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2">
-                  <Star className="text-[#FDE047]" size={20} />
-                  Most Starred
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-6 space-y-3">
-                {topPackages.slice(0, 3).map((pkg, index) => (
-                  <motion.div 
-                    key={`star-${pkg.name}`}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-[#3A3A3A] transition-colors"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <span className="font-medium">{pkg.name}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="fill-[#FDE047] text-[#FDE047]" size={14} />
-                      <span className="text-[#B0B0B0]">{Math.round(parseInt(pkg.downloads.replace(/[^0-9.]/g, '')) / 100)}K</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </CardContent>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader>
+                  <CardTitle className="text-lg font-extrabold text-white uppercase flex items-center gap-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <Star className="text-[#FDE047]" size={20} />
+                    Most Starred
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-6 space-y-3">
+                  {topPackages.slice(0, 3).map((pkg, index) => (
+                    <motion.div 
+                      key={`star-${pkg.name}`}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-[#3A3A3A] transition-colors"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <span className="font-medium text-white">{pkg.name}</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="fill-[#FDE047] text-[#FDE047]" size={14} />
+                        <span className="text-[#ffffff]">{Math.round(parseInt(pkg.downloads.replace(/[^0-9.]/g, '')) / 100)}K</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </CardContent>
+              </div>
             </Card>
           </motion.div>
         </div>

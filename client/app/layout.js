@@ -1,6 +1,5 @@
 import "./globals.css"
 import { WalletProvider } from "./WalletProvider"
-import Navigation from "@/components/Navigation"
 
 export const metadata = {
   title: "Movr",
@@ -12,8 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="font-inter antialiased">
         <WalletProvider>
-          <Navigation />
-          <div className="pt-16">
+          <div >
             {children}
           </div>
         </WalletProvider>

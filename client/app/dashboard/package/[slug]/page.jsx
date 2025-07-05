@@ -61,10 +61,14 @@ export default function PackageDetails({ params }) {
   const packageInfo = packageData;
   
   return (
-    <div className="min-h-screen bg-[--background] text-[--foreground]" style={{ 
-      backgroundColor: "#0A0A0A",  // primary.background 
-      color: "#FFFFFF"  // primary.text
-    }}>
+    <div className="min-h-screen bg-[--background] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
+      <div className="absolute inset-0 w-full h-full -z-20 pointer-events-none select-none" style={{
+        backgroundImage: 'url(/dash-back.jpeg)',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+      }} />
       {/* Back Button */}
       <div className="py-6 px-6 md:px-10">
         <Link href="/dashboard">
@@ -84,7 +88,7 @@ export default function PackageDetails({ params }) {
       >
         <div className="flex items-center gap-3">
           <Badge className="bg-[#3B82F6] text-white uppercase py-1 px-3">TS</Badge>
-          <h1 className="text-3xl font-extrabold tracking-tight">{packageInfo.name}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>{packageInfo.name}</h1>
           <p className="text-[#B0B0B0] text-sm">
             {packageInfo.version} • Public • Published {packageInfo.published}
           </p>
@@ -147,45 +151,50 @@ export default function PackageDetails({ params }) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div>
-            <h2 className="text-2xl font-bold mb-4">
-              a JavaScript idiomatic {packageInfo.name}
-            </h2>
-            <p className="text-xl text-[#B0B0B0] mb-6">
-              interface for inversion-of-control
-            </p>
-          </div>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30 space-y-8 p-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  a JavaScript idiomatic {packageInfo.name}
+                </h2>
+                <p className="text-xl text-[#B0B0B0] mb-6">
+                  interface for inversion-of-control
+                </p>
+              </div>
 
-          {/* Installation */}
-          <div>
-            <h3 className="text-xl font-extrabold text-white uppercase mb-4">Installation</h3>
-            <div className="bg-[#1A1A1A] rounded-lg p-4 flex justify-between items-center">
-              <code className="text-white font-mono">npm install {packageInfo.name}</code>
-              <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
-                <Copy size={16} />
-              </Button>
-            </div>
-          </div>
+              {/* Installation */}
+              <div>
+                <h3 className="text-xl font-extrabold text-white uppercase mb-4">Installation</h3>
+                <div className="bg-[#1A1A1A] rounded-lg p-4 flex justify-between items-center">
+                  <code className="text-white font-mono">npm install {packageInfo.name}</code>
+                  <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
+                    <Copy size={16} />
+                  </Button>
+                </div>
+              </div>
 
-          {/* Example Usage */}
-          <div>
-            <h3 className="text-xl font-extrabold text-white uppercase mb-4">Example Usage</h3>
-            <div className="bg-[#1A1A1A] rounded-lg p-4">
-              <div className="mb-2 text-[#B0B0B0]">in JavaScript</div>
-              <pre className="text-white font-mono text-sm overflow-x-auto">
-                {codeExample}
-              </pre>
-            </div>
-          </div>
+              {/* Example Usage */}
+              <div>
+                <h3 className="text-xl font-extrabold text-white uppercase mb-4">Example Usage</h3>
+                <div className="bg-[#1A1A1A] rounded-lg p-4">
+                  <div className="mb-2 text-[#B0B0B0]">in JavaScript</div>
+                  <pre className="text-white font-mono text-sm overflow-x-auto">
+                    {codeExample}
+                  </pre>
+                </div>
+              </div>
 
-          {/* README content */}
-          <div>
-            <div className="prose prose-invert max-w-none">
-              <pre className="whitespace-pre-wrap text-[#B0B0B0] text-sm">
-                {readmeContent}
-              </pre>
+              {/* README content */}
+              <div>
+                <div className="prose prose-invert max-w-none">
+                  <pre className="whitespace-pre-wrap text-[#B0B0B0] text-sm">
+                    {readmeContent}
+                  </pre>
+                </div>
+              </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
 
         {/* Right Column - Metadata */}
@@ -196,118 +205,131 @@ export default function PackageDetails({ params }) {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           {/* Install Card */}
-          <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg font-extrabold text-white uppercase">
-                Install
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <div className="bg-[#1A1A1A] rounded-lg p-3 flex justify-between items-center">
-                <code className="text-white font-mono text-sm">npm i {packageInfo.name}</code>
-                <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
-                  <Copy size={16} />
-                </Button>
-              </div>
-            </CardContent>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30">
+              <CardHeader>
+                <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Install
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <div className="bg-[#1A1A1A] rounded-lg p-3 flex justify-between items-center">
+                  <code className="text-white font-mono text-sm">npm i {packageInfo.name}</code>
+                  <Button variant="ghost" size="sm" className="text-[#B0B0B0]">
+                    <Copy size={16} />
+                  </Button>
+                </div>
+              </CardContent>
+            </div>
           </Card>
 
           {/* Repository Card */}
-          <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg font-extrabold text-white uppercase">
-                Repository
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <a href={packageInfo.repository} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
-                <GitBranch size={16} />
-                <span>{packageInfo.repository.replace("https://", "")}</span>
-              </a>
-            </CardContent>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30">
+              <CardHeader>
+                <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Repository
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <a href={packageInfo.repository} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
+                  <GitBranch size={16} />
+                  <span>{packageInfo.repository.replace("https://", "")}</span>
+                </a>
+              </CardContent>
+            </div>
           </Card>
 
           {/* Homepage Card */}
-          <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg font-extrabold text-white uppercase">
-                Homepage
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
-                <ExternalLink size={16} />
-                <span>{packageInfo.homepage.replace("https://", "")}</span>
-              </a>
-            </CardContent>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30">
+              <CardHeader>
+                <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Homepage
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#3B82F6] hover:underline">
+                  <ExternalLink size={16} />
+                  <span>{packageInfo.homepage.replace("https://", "")}</span>
+                </a>
+              </CardContent>
+            </div>
           </Card>
 
           {/* Weekly Downloads */}
-          <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg font-extrabold text-white uppercase">
-                Weekly Downloads
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold">{packageInfo.weeklyDownloads}</span>
-                <div className="mt-2 bg-[#1A1A1A] h-12 rounded-md relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center">
-                    {/* This would be a chart in a real implementation */}
-                    <div className="w-full h-4 flex items-center justify-center">
-                      <div className="h-full bg-[#4ADE80]" style={{width: "80%"}}></div>
-                    </div>
-                  </div>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30">
+              <CardHeader>
+                <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Weekly Downloads
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-white">{packageInfo.weeklyDownloads}</span>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
 
           {/* Version & License */}
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg font-extrabold text-white uppercase">
-                  Version
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-6">
-                <span className="text-xl font-bold">{packageInfo.version}</span>
-              </CardContent>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader>
+                  <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    Version
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-6">
+                  <span className="text-xl font-bold text-white">{packageInfo.version}</span>
+                </CardContent>
+              </div>
             </Card>
-            <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg font-extrabold text-white uppercase">
-                  License
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-6">
-                <span className="text-xl font-bold">{packageInfo.license}</span>
-              </CardContent>
+            <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+              <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+              <div className="relative z-30">
+                <CardHeader>
+                  <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    License
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-6">
+                  <span className="text-xl font-bold text-white">{packageInfo.license}</span>
+                </CardContent>
+              </div>
             </Card>
           </div>
 
           {/* Tags */}
-          <Card className="bg-[#2A2A2A] border-none shadow-lg rounded-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg font-extrabold text-white uppercase">
-                Tags
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <div className="flex flex-wrap gap-2">
-                {packageInfo.tags.map((tag) => (
-                  <Badge 
-                    key={tag}
-                    variant="outline" 
-                    className="bg-[#1A1A1A] hover:bg-[#3A3A3A] cursor-pointer transition-colors text-[#B0B0B0] hover:text-white border-[#808080]/20"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
+          <Card className="bg-transparent border-none shadow-lg rounded-xl overflow-hidden relative">
+            <img src="/dash.jpeg" alt="dash background" className="absolute inset-0 w-full h-full object-cover opacity-30 brightness-125 pointer-events-none select-none z-20" />
+            <div className="relative z-30">
+              <CardHeader>
+                <CardTitle className="text-lg font-extrabold uppercase bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <div className="flex flex-wrap gap-2">
+                  {packageInfo.tags.map((tag) => (
+                    <Badge 
+                      key={tag}
+                      variant="outline" 
+                      className="bg-[#1A1A1A] hover:bg-[#3A3A3A] cursor-pointer transition-colors text-[#B0B0B0] hover:text-white border-[#808080]/20"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </div>
           </Card>
         </motion.div>
       </div>
