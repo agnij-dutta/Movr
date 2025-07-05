@@ -14,11 +14,25 @@ import { useAptosTip } from "@/lib/hooks/useAptosTip";
 import { downloadFile } from "@/lib/ipfs";
 import { getAllPackages } from "@/lib/aptos";
 import JSZip from "jszip";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.5 }
+};
+
+// Custom heading components for consistent dark/shadcn UI
+const markdownComponents = {
+  h1: ({node, ...props}) => <h1 className="text-3xl font-bold mt-6 mb-2 text-white" {...props} />,
+  h2: ({node, ...props}) => <h2 className="text-2xl font-bold mt-5 mb-2 text-white" {...props} />,
+  h3: ({node, ...props}) => <h3 className="text-xl font-semibold mt-4 mb-2 text-white" {...props} />,
+  h4: ({node, ...props}) => <h4 className="text-lg font-semibold mt-3 mb-1 text-white" {...props} />,
+  h5: ({node, ...props}) => <h5 className="text-base font-semibold mt-2 mb-1 text-white" {...props} />,
+  h6: ({node, ...props}) => <h6 className="text-sm font-semibold mt-2 mb-1 text-white" {...props} />,
 };
 
 export default function PackageDetails() {
@@ -317,19 +331,29 @@ export default function PackageDetails() {
 
               {/* Example Usage */}
               {activeTab === "code" && (
-                <div className="bg-[#1A1A1A] rounded-lg p-4">
-                  <pre className="text-white font-mono text-sm overflow-x-auto">
-                    {moveSourceCode || codeExample || "No Move source or code example found."}
-                  </pre>
+                <div className="bg-[#1A1A1A] rounded-lg p-4 overflow-x-auto">
+                  <div className="prose prose-invert max-w-none text-white">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                      components={markdownComponents}
+                    >
+                      {moveSourceCode || codeExample || "No Move source or code example found."}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               )}
 
               {/* README content */}
               {activeTab === "readme" && (
-                <div className="prose prose-invert max-w-none">
-                  <pre className="whitespace-pre-wrap text-[#B0B0B0] text-sm">
+                <div className="prose prose-invert max-w-none text-[#B0B0B0] text-sm">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={markdownComponents}
+                  >
                     {readmeContent || "No README found."}
-                  </pre>
+                  </ReactMarkdown>
                 </div>
               )}
             </div>
