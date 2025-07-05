@@ -153,16 +153,6 @@ export default function Dashboard() {
     search(searchQuery); // refresh
   };
 
-  if (!connected) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] text-white">
-        <h2 className="text-2xl mb-4">Connect your wallet to access the dashboard</h2>
-        <button onClick={connect} className="px-6 py-2 bg-[#d6ff4b] text-[#232b3b] rounded font-bold">
-          Connect Wallet
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
