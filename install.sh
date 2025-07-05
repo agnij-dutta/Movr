@@ -1,8 +1,12 @@
 #!/bin/sh
 set -e
 
+# Always use v1.0.0 release
+VERSION="v1.0.0"
+
 GITHUB_REPO="agnij-dutta/Movr"
-VERSION="${1:-latest}"
+
+# Platform detection
 
 detect_platform() {
   OS="$(uname -s)"
@@ -22,15 +26,12 @@ detect_platform() {
 }
 
 get_download_url() {
-  if [ "$VERSION" = "latest" ]; then
-    VERSION=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
-  fi
   case "$PLATFORM" in
-    linux)  FILENAME="movr-linux";;
-    macos)  FILENAME="movr-macos";;
-    win)    FILENAME="movr-win.exe";;
+    linux)  echo "https://github.com/agnij-dutta/Movr/releases/download/v1.0.0/movr-linux";;
+    macos)  echo "https://github.com/agnij-dutta/Movr/releases/download/v1.0.0/movr-macos";;
+    win)    echo "https://github.com/agnij-dutta/Movr/releases/download/v1.0.0/movr-win.exe";;
+    *)      echo "Unsupported platform: $PLATFORM"; exit 1;;
   esac
-  echo "https://github.com/$GITHUB_REPO/releases/download/$VERSION/$FILENAME"
 }
 
 install_binary() {
