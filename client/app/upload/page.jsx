@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, ArrowLeft, ArrowRight, Image, FileVideo, FileText, CheckCircle } from "lucide-react";
@@ -8,6 +8,8 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Link from "next/link";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import WalletAddressButton from "@/components/ui/WalletAddressButton";
+import { useRouter } from "next/navigation";
 
 const steps = [
   { label: "Upload file", icon: Upload },
@@ -68,6 +70,14 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0);
   const [toast, setToast] = useState(null);
   const { account, disconnect, connected } = useWallet();
+  const router = useRouter();
+
+  // Redirect to landing if not connected
+  useEffect(() => {
+    if (!connected) {
+      router.replace("/");
+    }
+  }, [connected, router]);
 
   // File upload handlers
   const handleFileChange = (e) => {
@@ -131,16 +141,9 @@ export default function UploadPage() {
       }}
     >
       {/* Wallet Address Display - Top Right */}
-      {connected && account?.address && (
-        <div className="absolute top-6 right-8 z-20 flex items-center gap-2">
-          <Button variant="ghost" className="text-white hover:bg-white hover:text-black" >
-            {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
-          </Button>
-          <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-white hover:text-black" size="sm">
-            Logout
-          </Button>
-        </div>
-      )}
+      <div className="absolute top-6 right-8 z-20">
+        <WalletAddressButton account={account} disconnect={disconnect} connected={connected} />
+      </div>
       {/* Dashboard Back Button - Top Left */}
       <div className="absolute top-6 left-8 z-20 flex items-center gap-2">
         <Link href="/dashboard">

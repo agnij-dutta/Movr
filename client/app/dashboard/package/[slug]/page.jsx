@@ -56,6 +56,7 @@ A JavaScript library for building user interfaces
 
 export default function PackageDetails({ params }) {
   const [activeTab, setActiveTab] = useState("readme");
+  const [showLogout, setShowLogout] = useState(false);
   const { slug } = useParams();
   const { account, disconnect, connected } = useWallet();
   
@@ -74,12 +75,18 @@ export default function PackageDetails({ params }) {
       {/* Wallet Address Display - Top Right */}
       {connected && account?.address && (
         <div className="absolute top-6 right-8 z-30 flex items-center gap-2">
-          <Button variant="ghost" className="text-white hover:bg-white hover:text-black">
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-white hover:text-black"
+            onClick={() => setShowLogout((prev) => !prev)}
+          >
             {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
           </Button>
-          <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-white hover:text-black" size="sm">
-            Logout
-          </Button>
+          {showLogout && (
+            <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-white hover:text-black" size="sm">
+              Logout
+            </Button>
+          )}
         </div>
       )}
       {/* Back Button */}

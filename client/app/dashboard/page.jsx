@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useRouter } from "next/navigation";
+import WalletAddressButton from "@/components/ui/WalletAddressButton";
 
 // Mock data for packages
 const topPackages = [
@@ -167,16 +168,9 @@ export default function Dashboard() {
           zIndex: 0
         }} />
         {/* Wallet Address Display - Top Right */}
-        {connected && account?.address && (
-          <div className="absolute top-6 right-8 z-20 flex items-center gap-2">
-            <Button variant="ghost" className="text-white hover:bg-white hover:text-black" >
-              {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
-            </Button>
-            <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-white hover:text-black" size="sm">
-              Logout
-            </Button>
-          </div>
-        )}
+        <div className="absolute top-6 right-8 z-20">
+          <WalletAddressButton account={account} disconnect={disconnect} connected={connected} />
+        </div>
         <div className="relative z-10 flex flex-col items-center md:items-start justify-center w-full max-w-5xl mx-auto pt-16 pb-12 text-center md:text-right">
           <span className="tracking-widest text-[#7b8a8e] text-xs md:text-sm mb-4 uppercase" style={{ letterSpacing: '0.2em' }}>MOVR</span>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans leading-[1.15] pb-2" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
