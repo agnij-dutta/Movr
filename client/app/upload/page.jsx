@@ -10,6 +10,9 @@ import Link from "next/link";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import WalletAddressButton from "@/components/ui/WalletAddressButton";
 import { useRouter } from "next/navigation";
+import JSZip from "jszip";
+import { pinJSON, uploadFile } from "@/lib/ipfs";
+import { publishPackage } from "@/lib/aptos";
 
 const steps = [
   { label: "Upload file", icon: Upload },
@@ -80,11 +83,22 @@ export default function UploadPage() {
   }, [connected, router]);
 
   // File upload handlers
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       setProgress(0);
+      // Extract Move.toml and auto-fill name
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        const moveTomlFile = zip.file("Move.toml");
+        if (moveTomlFile) {
+          const moveToml = await moveTomlFile.async("string");
+          const nameMatch = moveToml.match(/name\s*=\s*"([^"]+)"/);
+          if (nameMatch) setName(nameMatch[1]);
+        }
+      } catch (err) { /* ignore */ }
     }
   };
   const handleDrop = (e) => {
@@ -114,21 +128,45 @@ export default function UploadPage() {
     return true;
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     setUploading(true);
-    setProgress(0);
-    let prog = 0;
-    const interval = setInterval(() => {
-      prog += Math.random() * 20 + 10;
-      if (prog >= 100) {
-        prog = 100;
-        clearInterval(interval);
-        setUploading(false);
-        setToast("Upload successful!");
-        setTimeout(() => setToast(null), 2500);
-      }
-      setProgress(prog);
-    }, 400);
+    setProgress(10);
+    try {
+      // Upload ZIP to IPFS
+      const ipfsHash = await (async () => {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('pinataMetadata', JSON.stringify({ name, keyvalues: { name, description, tags: tags.join(",") } }));
+        const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}` },
+          body: formData,
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        setProgress(50);
+        return data.IpfsHash;
+      })();
+      // Publish on-chain
+      await publishPackage(account, {
+        name,
+        version: "1.0.0", // TODO: add version field to form if needed
+        ipfsHash,
+        description,
+        homepage: "",
+        repository: "",
+        license: "",
+        tags,
+      });
+      setProgress(100);
+      setUploading(false);
+      setToast("Package published successfully!");
+      setTimeout(() => setToast(null), 2500);
+    } catch (err) {
+      setUploading(false);
+      setToast("Failed to publish: " + (err?.message || err));
+      setTimeout(() => setToast(null), 3500);
+    }
   };
 
   return (
