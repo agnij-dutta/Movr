@@ -5,6 +5,7 @@ cli/node_modules/
 cli/.aptos/
 cli/.apm/
 cli/apm_publish*
+node_modules
 
 # Ignore logs and temp files in cli/
 cli/logs/

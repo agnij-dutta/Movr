@@ -308,6 +308,19 @@ export default function MovrLanding() {
           {/* Dynamic Content Below Tabs */}
           <div className="relative max-w-5xl mx-auto">{tabs.find((t) => t.key === activeTab)?.content}</div>
         </div>
+        {/* Gradient overlay to smooth the seam to the next section */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "160px",
+            background: "linear-gradient(to bottom, rgba(10,10,10,0), #0A0A0A 100%)",
+            pointerEvents: "none",
+            zIndex: 20,
+          }}
+        />
       </section>
 
       {/* Features Section */}
@@ -397,6 +410,18 @@ export default function MovrLanding() {
             </CardContent>
           </Card>
         </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            height: "120px",
+            background: "linear-gradient(to top, rgba(10,10,10,0), #0A0A0A 100%)",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        />
       </section>
 
       {/* Web Editor Section */}
