@@ -227,16 +227,14 @@ export class AptosBlockchainService {
         return null;
       }
 
-      // The response is a vector of values representing the package metadata
+      // The response is a struct representing the package metadata
       const metadata = response[0];
       if (!metadata || typeof metadata !== 'object') {
         logger.error('Invalid metadata response', { name, version: actualVersion });
         return null;
       }
 
-      // Convert the response to an array of MoveValues
-      const values = Object.values(metadata).map(value => value as MoveValue);
-      return this.parsePackageMetadata(values);
+      return this.parsePackageMetadata(metadata);
     } catch (error) {
       logger.error('Failed to get package metadata', { name, version, error });
       throw createBlockchainError(
@@ -553,23 +551,19 @@ export class AptosBlockchainService {
   /**
    * Parse package metadata from Move values
    */
-  private parsePackageMetadata(response: MoveValue[]): PackageMetadata {
-    if (!response || response.length < 10) {
-      throw new Error('Invalid package metadata response');
-    }
-
+  private parsePackageMetadata(response: any): PackageMetadata {
     return {
-      name: this.parseMoveValue(response[0]),
-      version: this.parseMoveValue(response[1]),
-      publisher: this.parseMoveValue(response[2]),
-      ipfsHash: this.parseMoveValue(response[3]),
-      endorsements: this.parseMoveValue(response[4]),
-      timestamp: this.parseMoveValue(response[5]),
-      packageType: this.parseMoveValue(response[6]),
-      downloadCount: this.parseMoveValue(response[7]),
-      totalTips: this.parseMoveValue(response[8]),
-      tags: this.parseMoveValue(response[9]),
-      description: this.parseMoveValue(response[10]),
+      name: this.parseMoveValue(response.name),
+      version: this.parseMoveValue(response.version),
+      publisher: this.parseMoveValue(response.publisher),
+      ipfsHash: this.parseMoveValue(response.ipfs_hash),
+      endorsements: this.parseMoveValue(response.endorsements),
+      timestamp: this.parseMoveValue(response.timestamp),
+      packageType: this.parseMoveValue(response.package_type),
+      downloadCount: this.parseMoveValue(response.download_count),
+      totalTips: this.parseMoveValue(response.total_tips),
+      tags: this.parseMoveValue(response.tags),
+      description: this.parseMoveValue(response.description),
     };
   }
 
