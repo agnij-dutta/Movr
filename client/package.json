@@ -13,6 +13,7 @@
     "@aptos-labs/wallet-adapter-react": "^7.0.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@splinetool/react-spline": "^4.0.0",
+    "@tabler/icons-react": "^3.34.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.0",
@@ -21,6 +22,7 @@
     "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.8",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
