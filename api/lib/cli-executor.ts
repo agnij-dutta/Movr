@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import fs from 'fs';
 
 const execAsync = promisify(exec);
 
@@ -16,8 +17,36 @@ export class CLIExecutor {
   private cliPath: string;
   
   constructor() {
-    // Use the compiled JavaScript version instead of the broken binary
-    this.cliPath = `node ${path.join(process.cwd(), '..', 'cli', 'dist', 'bin', 'cli.js')}`;
+    // Get project root directory (parent of api)
+    const PROJECT_ROOT = path.resolve(process.cwd(), '..');
+    const CLI_DIST_PATH = path.join(PROJECT_ROOT, 'cli', 'dist', 'bin', 'cli.js');
+    
+    // Check if the CLI dist file exists
+    if (fs.existsSync(CLI_DIST_PATH)) {
+      this.cliPath = `node ${CLI_DIST_PATH}`;
+    } else {
+      // Fallback: try to find CLI in current directory structure
+      const localCliPath = path.join(process.cwd(), 'cli', 'dist', 'bin', 'cli.js');
+      if (fs.existsSync(localCliPath)) {
+        this.cliPath = `node ${localCliPath}`;
+      } else {
+        // Last resort: try relative to api directory
+        const relativeCliPath = path.join(__dirname, '..', '..', 'cli', 'dist', 'bin', 'cli.js');
+        if (fs.existsSync(relativeCliPath)) {
+          this.cliPath = `node ${relativeCliPath}`;
+        } else {
+          // If no CLI found, we'll have to use the binary approach
+          const binaryPath = path.join(PROJECT_ROOT, 'cli', 'cli_binaries', 'movr-linux');
+          if (fs.existsSync(binaryPath)) {
+            this.cliPath = binaryPath;
+          } else {
+            throw new Error('CLI executable not found. Please ensure the CLI is built and available.');
+          }
+        }
+      }
+    }
+    
+    console.log(`CLI path resolved to: ${this.cliPath}`);
   }
 
   async executeCommand(command: string, args: string[] = [], options: any = {}): Promise<CLIResponse> {

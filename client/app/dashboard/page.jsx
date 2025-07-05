@@ -15,7 +15,7 @@ import {
   LogOut,
   ChevronDown,
   X,
-  Upload
+  Upload,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,68 +26,21 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import WalletAddressButton from "@/components/ui/WalletAddressButton";
 
-// Mock data for packages
-const topPackages = [
-  { name: "react", description: "React is a JavaScript library for building user interfaces.", downloads: "12.4M", version: "18.3.0" },
-  { name: "next", description: "The React Framework for Production", downloads: "8.7M", version: "15.3.0" },
-  { name: "tailwindcss", description: "A utility-first CSS framework for rapidly building custom designs", downloads: "6.2M", version: "4.0.0" },
-  { name: "framer-motion", description: "Open source, production-ready animation and gesture library for React", downloads: "2.8M", version: "11.0.5" }
-];
+// API helpers
+import { searchPackages, getAllPackages } from "@/lib/api";
 
-const recentPackages = [
-  { name: "shadcn-ui", description: "Beautifully designed components built with Radix UI and Tailwind CSS", downloads: "950K", version: "0.9.0" },
-  { name: "aptos-sdk", description: "SDK for interacting with Aptos blockchain", downloads: "420K", version: "1.39.0" },
-  { name: "zod", description: "TypeScript-first schema validation with static type inference", downloads: "4.1M", version: "3.22.4" }
-];
-
-// Popular tags
+// Placeholder tags (could be replaced with dynamic tags from API later)
 const popularTags = [
-  "react", "ui", "components", "state-management", "styling", 
-  "animation", "forms", "validation", "blockchain", "web3"
-];
-
-// Mock data for search results (add icons as URLs or emoji for now)
-const searchResultsMock = [
-  {
-    name: "Aptos Assistant",
-    description: "Your AI-powered companion, designed to streamline and simplify your experience with smart, accessible support as you navigate the Aptos network.",
-    icon: "/public/aptos-assistant.png"
-  },
-  {
-    name: "Aptos Build",
-    description: "The essential toolkit for every Aptos developer, by Aptos Labs.",
-    icon: "/public/aptos-build.png"
-  },
-  {
-    name: "Aptos Connect",
-    description: "Keyless wallet with social login and no downloads required.",
-    icon: "/public/aptos-connect.png"
-  },
-  {
-    name: "Aptos Explorer",
-    description: "Aptos blockchain explorer by Aptos Labs",
-    icon: "/public/aptos-explorer.png"
-  },
-  {
-    name: "Aptos Monkeys",
-    description: "A cult on Aptos for builders, community, and NFTs tools.",
-    icon: "/public/aptos-monkeys.png"
-  },
-  {
-    name: "Ethena",
-    description: "Ethena issues USDe, the third largest crypto dollar with $6b+ in TVL",
-    icon: "/public/ethena.png"
-  },
-  {
-    name: "GUI Gang",
-    description: "A PFP collection on Aptos, the heart and soul of GUI INU.",
-    icon: "/public/gui-gang.png"
-  },
-  {
-    name: "KGeN",
-    description: "Building the distribution layer of Web3 & AI.",
-    icon: "/public/kgen.png"
-  }
+  "react",
+  "ui",
+  "components",
+  "state-management",
+  "styling",
+  "animation",
+  "forms",
+  "validation",
+  "blockchain",
+  "web3",
 ];
 
 const fadeIn = {
@@ -103,6 +56,77 @@ export default function Dashboard() {
   const dropdownRef = useRef(null);
   const router = useRouter();
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
+
+  // Dynamic data from API
+  const [allPackages, setAllPackages] = useState([]);
+  const [topPackages, setTopPackages] = useState([]);
+  const [recentPackages, setRecentPackages] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+
+  // Fetch all packages once on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getAllPackages();
+        if (res?.success) {
+          const pkgs = Array.isArray(res.data) ? res.data : res.data?.packages || [];
+          setAllPackages(pkgs);
+
+          const fmt = (n) => {
+            if (n > 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+            if (n > 1_000) return `${(n / 1_000).toFixed(1)}K`;
+            return `${n}`;
+          };
+
+          // Sort by endorsements length desc for top packages
+          const sortedByEndorse = [...pkgs].sort(
+            (a, b) => (b.endorsements?.length || 0) - (a.endorsements?.length || 0)
+          );
+          setTopPackages(
+            sortedByEndorse.slice(0, 4).map((p) => ({
+              name: p.name,
+              description: p.description,
+              downloads: fmt(p.downloadCount || 0),
+              version: p.version,
+            }))
+          );
+
+          // Recent packages: sort by timestamp desc
+          const sortedByTime = [...pkgs].sort((a, b) => b.timestamp - a.timestamp);
+          setRecentPackages(
+            sortedByTime.slice(0, 3).map((p) => ({
+              name: p.name,
+              description: p.description,
+              downloads: fmt(p.downloadCount || 0),
+              version: p.version,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load packages", err);
+      }
+    })();
+  }, []);
+
+  // Live search (debounced)
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      try {
+        if (searchQuery.trim() === "") {
+          setSearchResults([]);
+          return;
+        }
+        const res = await searchPackages(searchQuery);
+        if (res?.success) {
+          const pkgs = Array.isArray(res.data) ? res.data : res.data?.packages || [];
+          setSearchResults(pkgs);
+        }
+      } catch (err) {
+        console.error("Search failed", err);
+      }
+    }, 400); // debounce 400ms
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -138,10 +162,7 @@ export default function Dashboard() {
   }, [searchQuery]);
 
   // Filter search results
-  const filteredResults = searchResultsMock.filter(pkg =>
-    pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pkg.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredResults = searchResults;
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[--foreground] relative overflow-hidden" style={{ color: '#FFFFFF' }}>
