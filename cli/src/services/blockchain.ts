@@ -1,0 +1,729 @@
+import {
+  Aptos,
+  AptosConfig,
+  Network,
+  Account,
+  AccountAddress,
+  Ed25519PrivateKey,
+  MoveValue,
+  U64,
+  U128,
+  Bool,
+  MoveString,
+  MoveVector,
+  AnyNumber,
+  Event,
+} from '@aptos-labs/ts-sdk';
+import { logger } from '../utils/logger.js';
+import { createBlockchainError, createConfigError } from '../utils/errors.js';
+import {
+  APM_CONTRACT_ADDRESS,
+  APM_MODULE_NAME,
+  PackageMetadata,
+  EndorserInfo,
+  RegistryStats,
+  TransactionResult,
+  PACKAGE_TYPE_LIBRARY,
+  PACKAGE_TYPE_TEMPLATE,
+  PackagePublishedEvent,
+  PackageEndorsedEvent,
+  PackageTippedEvent,
+  EndorserRegisteredEvent,
+} from './types.js';
+
+export class AptosBlockchainService {
+  private aptos: Aptos;
+  private config: AptosConfig;
+
+  constructor(network: Network = Network.DEVNET, nodeUrl?: string) {
+    this.config = new AptosConfig({ 
+      network,
+      ...(nodeUrl && { fullnode: nodeUrl })
+    });
+    
+    this.aptos = new Aptos(this.config);
+    
+    logger.info('Blockchain service initialized', {
+      network,
+      contractAddress: APM_CONTRACT_ADDRESS,
+    });
+  }
+
+  /**
+   * Get account information
+   */
+  async getAccountInfo(address: string) {
+    try {
+      const accountAddress = AccountAddress.from(address);
+      const accountInfo = await this.aptos.getAccountInfo({
+        accountAddress,
+      });
+      
+      logger.debug('Retrieved account info', {
+        address,
+        sequenceNumber: accountInfo.sequence_number,
+      });
+      
+      return accountInfo;
+    } catch (error) {
+      logger.error('Failed to get account info', { address, error });
+      throw createBlockchainError(
+        `Failed to get account info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { address }
+      );
+    }
+  }
+
+  /**
+   * Fund account with APT (testnet/devnet only)
+   */
+  async fundAccount(address: string, amount: number = 100_000_000): Promise<void> {
+    try {
+      if (this.config.network === Network.MAINNET) {
+        throw createConfigError('Cannot fund account on mainnet');
+      }
+
+      const accountAddress = AccountAddress.from(address);
+      await this.aptos.fundAccount({
+        accountAddress,
+        amount,
+      });
+      
+      logger.info('Account funded successfully', { address, amount });
+    } catch (error) {
+      logger.error('Failed to fund account', { address, amount, error });
+      throw createBlockchainError(
+        `Failed to fund account ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { address, amount }
+      );
+    }
+  }
+
+  /**
+   * Publish a package to the registry
+   */
+  async publishPackage(
+    signer: Account,
+    metadata: PackageMetadata
+  ): Promise<TransactionResult> {
+    try {
+      logger.info('Publishing package to registry', {
+        packageName: metadata.name,
+        version: metadata.version,
+        ipfsHash: metadata.ipfsHash,
+      });
+
+      const transaction = await this.aptos.transaction.build.simple({
+        sender: signer.accountAddress,
+        data: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::publish_package`,
+          functionArguments: [
+            metadata.name,
+            metadata.version,
+            metadata.ipfsHash,
+            metadata.packageType || PACKAGE_TYPE_LIBRARY,
+            metadata.description || '',
+            metadata.tags || [],
+          ],
+        },
+      });
+
+      const senderAuthenticator = this.aptos.transaction.sign({
+        signer,
+        transaction,
+      });
+
+      const submittedTx = await this.aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      const txResult = await this.aptos.waitForTransaction({
+        transactionHash: submittedTx.hash,
+      });
+
+      return {
+        transactionHash: submittedTx.hash,
+        success: txResult.success,
+        vmStatus: txResult.vm_status,
+      };
+    } catch (error) {
+      logger.error('Failed to publish package', {
+        packageName: metadata.name,
+        error,
+      });
+      throw createBlockchainError(
+        `Failed to publish package ${metadata.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { packageName: metadata.name }
+      );
+    }
+  }
+
+  /**
+   * Get package metadata
+   */
+  async getPackageMetadata(name: string, version?: string): Promise<PackageMetadata | null> {
+    try {
+      logger.debug('Getting package metadata', { name, version });
+
+      let actualVersion = version;
+      if (!actualVersion) {
+        // Fetch latest version if not provided
+        const versions = await this.getPackageVersions(name);
+        if (!versions || versions.length === 0) {
+          logger.error('No versions found for package', { name });
+          return null;
+        }
+        actualVersion = versions[versions.length - 1]; // Use the latest version
+        logger.debug('No version specified, using latest', { name, actualVersion });
+      }
+
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_package_metadata`,
+          functionArguments: [name, actualVersion],
+        },
+      });
+
+      if (!response || response.length === 0) {
+        logger.error('No metadata found for package', { name, version: actualVersion });
+        return null;
+      }
+
+      // The response is a vector of values representing the package metadata
+      const metadata = response[0];
+      if (!metadata || typeof metadata !== 'object') {
+        logger.error('Invalid metadata response', { name, version: actualVersion });
+        return null;
+      }
+
+      // Convert the response to an array of MoveValues
+      const values = Object.values(metadata).map(value => value as MoveValue);
+      return this.parsePackageMetadata(values);
+    } catch (error) {
+      logger.error('Failed to get package metadata', { name, version, error });
+      throw createBlockchainError(
+        `Failed to get package metadata for ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { name, version }
+      );
+    }
+  }
+
+  /**
+   * Get package versions
+   */
+  async getPackageVersions(name: string): Promise<string[]> {
+    try {
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_package_versions`,
+          functionArguments: [name],
+        },
+      });
+
+      if (!response || !response[0] || !(response[0] instanceof MoveVector)) {
+        return [];
+      }
+
+      const versions = response[0] as MoveVector<MoveString>;
+      return versions.values.map(v => v.value);
+    } catch (error) {
+      logger.error('Failed to get package versions', { name, error });
+      throw createBlockchainError(
+        `Failed to get versions for package ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { name }
+      );
+    }
+  }
+
+  /**
+   * Search packages
+   */
+  async searchPackages(query: string): Promise<PackageMetadata[]> {
+    try {
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::search_packages`,
+          functionArguments: [query],
+        },
+      });
+
+      if (!response || response.length === 0) {
+        return [];
+      }
+
+      const results = response[0];
+      if (!results || !(results instanceof MoveVector)) {
+        return [];
+      }
+
+      return results.values.map(result => {
+        if (!result || typeof result !== 'object') {
+          return null;
+        }
+        const values = Object.values(result).map(value => value as MoveValue);
+        return this.parsePackageMetadata(values);
+      }).filter((pkg): pkg is PackageMetadata => pkg !== null);
+    } catch (error) {
+      logger.error('Failed to search packages', { query, error });
+      throw createBlockchainError(
+        `Failed to search packages: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { query }
+      );
+    }
+  }
+
+  /**
+   * Get registry stats
+   */
+  async getRegistryStats(): Promise<RegistryStats> {
+    try {
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_registry_stats`,
+          functionArguments: [],
+        },
+      });
+
+      if (!response || response.length === 0) {
+        throw new Error('Invalid registry stats response');
+      }
+
+      const stats = response[0];
+      if (!stats || typeof stats !== 'object') {
+        throw new Error('Invalid registry stats response');
+      }
+
+      const values = Object.values(stats).map(value => value as MoveValue);
+      return this.parseRegistryStats(values);
+    } catch (error) {
+      logger.error('Failed to get registry stats', { error });
+      throw createBlockchainError(
+        `Failed to get registry stats: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get endorser info
+   */
+  async getEndorserInfo(address: string): Promise<EndorserInfo | null> {
+    try {
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_endorser_info`,
+          functionArguments: [address],
+        },
+      });
+
+      if (!response || response.length === 0) {
+        return null;
+      }
+
+      const info = response[0];
+      if (!info || typeof info !== 'object') {
+        return null;
+      }
+
+      const values = Object.values(info).map(value => value as MoveValue);
+      return this.parseEndorserInfo(values);
+    } catch (error) {
+      logger.error('Failed to get endorser info', { address, error });
+      throw createBlockchainError(
+        `Failed to get endorser info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { address }
+      );
+    }
+  }
+
+  /**
+   * Register as an endorser
+   */
+  async registerEndorser(signer: Account, stakeAmount: number): Promise<TransactionResult> {
+    try {
+      const transaction = await this.aptos.transaction.build.simple({
+        sender: signer.accountAddress,
+        data: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::register_endorser`,
+          functionArguments: [stakeAmount],
+        },
+      });
+
+      const senderAuthenticator = this.aptos.transaction.sign({
+        signer,
+        transaction,
+      });
+
+      const submittedTx = await this.aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      const txResult = await this.aptos.waitForTransaction({
+        transactionHash: submittedTx.hash,
+      });
+
+      return {
+        transactionHash: submittedTx.hash,
+        success: txResult.success,
+        vmStatus: txResult.vm_status,
+      };
+    } catch (error) {
+      logger.error('Failed to register endorser', { error });
+      throw createBlockchainError(
+        `Failed to register endorser: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Endorse a package
+   */
+  async endorsePackage(
+    signer: Account,
+    name: string,
+    version: string
+  ): Promise<TransactionResult> {
+    try {
+      const transaction = await this.aptos.transaction.build.simple({
+        sender: signer.accountAddress,
+        data: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::endorse_package`,
+          functionArguments: [name, version],
+        },
+      });
+
+      const senderAuthenticator = this.aptos.transaction.sign({
+        signer,
+        transaction,
+      });
+
+      const submittedTx = await this.aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      const txResult = await this.aptos.waitForTransaction({
+        transactionHash: submittedTx.hash,
+      });
+
+      return {
+        transactionHash: submittedTx.hash,
+        success: txResult.success,
+        vmStatus: txResult.vm_status,
+      };
+    } catch (error) {
+      logger.error('Failed to endorse package', { name, version, error });
+      throw createBlockchainError(
+        `Failed to endorse package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { name, version }
+      );
+    }
+  }
+
+  /**
+   * Tip a package
+   */
+  async tipPackage(
+    signer: Account,
+    name: string,
+    version: string,
+    amount: number
+  ): Promise<TransactionResult> {
+    try {
+      const transaction = await this.aptos.transaction.build.simple({
+        sender: signer.accountAddress,
+        data: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::tip_package`,
+          functionArguments: [name, version, amount],
+        },
+      });
+
+      const senderAuthenticator = this.aptos.transaction.sign({
+        signer,
+        transaction,
+      });
+
+      const submittedTx = await this.aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+      });
+
+      const txResult = await this.aptos.waitForTransaction({
+        transactionHash: submittedTx.hash,
+      });
+
+      return {
+        transactionHash: submittedTx.hash,
+        success: txResult.success,
+        vmStatus: txResult.vm_status,
+      };
+    } catch (error) {
+      logger.error('Failed to tip package', { name, version, amount, error });
+      throw createBlockchainError(
+        `Failed to tip package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { name, version, amount }
+      );
+    }
+  }
+
+  /**
+   * Create account from private key
+   */
+  createAccountFromPrivateKey(privateKeyString: string): Account {
+    try {
+      const privateKey = new Ed25519PrivateKey(privateKeyString);
+      return Account.fromPrivateKey({ privateKey });
+    } catch (error) {
+      throw createBlockchainError(
+        `Failed to create account from private key: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Generate new account
+   */
+  generateAccount(): Account {
+    return Account.generate();
+  }
+
+  /**
+   * Parse Move values into TypeScript types
+   */
+  private parseMoveValue(value: MoveValue): any {
+    if (value instanceof U64 || value instanceof U128) {
+      return Number(value.value);
+    } else if (value instanceof Bool) {
+      return value.value;
+    } else if (value instanceof MoveString) {
+      return value.value;
+    } else if (value instanceof MoveVector) {
+      return value.values.map(v => this.parseMoveValue(v));
+    } else if (value === null || value === undefined) {
+      return null;
+    } else {
+      return value;
+    }
+  }
+
+  /**
+   * Parse package metadata from Move values
+   */
+  private parsePackageMetadata(response: MoveValue[]): PackageMetadata {
+    if (!response || response.length < 10) {
+      throw new Error('Invalid package metadata response');
+    }
+
+    return {
+      name: this.parseMoveValue(response[0]),
+      version: this.parseMoveValue(response[1]),
+      publisher: this.parseMoveValue(response[2]),
+      ipfsHash: this.parseMoveValue(response[3]),
+      endorsements: this.parseMoveValue(response[4]),
+      timestamp: this.parseMoveValue(response[5]),
+      packageType: this.parseMoveValue(response[6]),
+      downloadCount: this.parseMoveValue(response[7]),
+      totalTips: this.parseMoveValue(response[8]),
+      tags: this.parseMoveValue(response[9]),
+      description: this.parseMoveValue(response[10]),
+    };
+  }
+
+  /**
+   * Parse endorser info from Move values
+   */
+  private parseEndorserInfo(response: MoveValue[]): EndorserInfo {
+    if (!response || response.length < 6) {
+      throw new Error('Invalid endorser info response');
+    }
+
+    return {
+      endorser: this.parseMoveValue(response[0]),
+      stakeAmount: this.parseMoveValue(response[1]),
+      isActive: this.parseMoveValue(response[2]),
+      reputation: this.parseMoveValue(response[3]),
+      packagesEndorsed: this.parseMoveValue(response[4]),
+      registeredAt: this.parseMoveValue(response[5]),
+    };
+  }
+
+  /**
+   * Parse registry stats from Move values
+   */
+  private parseRegistryStats(response: MoveValue[]): RegistryStats {
+    if (!response || response.length < 4) {
+      throw new Error('Invalid registry stats response');
+    }
+
+    return {
+      totalPackages: this.parseMoveValue(response[0]),
+      totalEndorsers: this.parseMoveValue(response[1]),
+      totalDownloads: this.parseMoveValue(response[2]),
+      totalTips: this.parseMoveValue(response[3]),
+    };
+  }
+
+  /**
+   * Get package published events
+   */
+  async getPackagePublishedEvents(limit: number = 10): Promise<PackagePublishedEvent[]> {
+    try {
+      const events = await this.aptos.getEvents({
+        options: {
+          limit,
+          where: {
+            account_address: { _eq: APM_CONTRACT_ADDRESS },
+            creation_number: { _eq: 0 }, // Assuming this is the first event stream
+          },
+        },
+      });
+
+      return events.map(event => ({
+        name: this.parseMoveValue(event.data.name),
+        version: this.parseMoveValue(event.data.version),
+        publisher: this.parseMoveValue(event.data.publisher),
+        packageType: this.parseMoveValue(event.data.package_type),
+        timestamp: Number(event.sequence_number),
+      }));
+    } catch (error) {
+      logger.error('Failed to get package published events', { error });
+      throw createBlockchainError(
+        `Failed to get package published events: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get package endorsed events
+   */
+  async getPackageEndorsedEvents(limit: number = 10): Promise<PackageEndorsedEvent[]> {
+    try {
+      const events = await this.aptos.getEvents({
+        options: {
+          limit,
+          where: {
+            account_address: { _eq: APM_CONTRACT_ADDRESS },
+            creation_number: { _eq: 1 }, // Assuming this is the second event stream
+          },
+        },
+      });
+
+      return events.map(event => ({
+        name: this.parseMoveValue(event.data.name),
+        version: this.parseMoveValue(event.data.version),
+        endorser: this.parseMoveValue(event.data.endorser),
+        timestamp: Number(event.sequence_number),
+      }));
+    } catch (error) {
+      logger.error('Failed to get package endorsed events', { error });
+      throw createBlockchainError(
+        `Failed to get package endorsed events: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get package tipped events
+   */
+  async getPackageTippedEvents(limit: number = 10): Promise<PackageTippedEvent[]> {
+    try {
+      const events = await this.aptos.getEvents({
+        options: {
+          limit,
+          where: {
+            account_address: { _eq: APM_CONTRACT_ADDRESS },
+            creation_number: { _eq: 2 }, // Assuming this is the third event stream
+          },
+        },
+      });
+
+      return events.map(event => ({
+        name: this.parseMoveValue(event.data.name),
+        version: this.parseMoveValue(event.data.version),
+        tipper: this.parseMoveValue(event.data.tipper),
+        amount: this.parseMoveValue(event.data.amount),
+        timestamp: Number(event.sequence_number),
+      }));
+    } catch (error) {
+      logger.error('Failed to get package tipped events', { error });
+      throw createBlockchainError(
+        `Failed to get package tipped events: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get endorser registered events
+   */
+  async getEndorserRegisteredEvents(limit: number = 10): Promise<EndorserRegisteredEvent[]> {
+    try {
+      const events = await this.aptos.getEvents({
+        options: {
+          limit,
+          where: {
+            account_address: { _eq: APM_CONTRACT_ADDRESS },
+            creation_number: { _eq: 3 }, // Assuming this is the fourth event stream
+          },
+        },
+      });
+
+      return events.map(event => ({
+        endorser: this.parseMoveValue(event.data.endorser),
+        stakeAmount: this.parseMoveValue(event.data.stake_amount),
+        timestamp: Number(event.sequence_number),
+      }));
+    } catch (error) {
+      logger.error('Failed to get endorser registered events', { error });
+      throw createBlockchainError(
+        `Failed to get endorser registered events: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get all packages (off-chain aggregation)
+   */
+  async getAllPackages(): Promise<PackageMetadata[]> {
+    try {
+      // Fetch all package IDs from package_list
+      const response = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_total_packages`,
+          functionArguments: [],
+        },
+      });
+      // If total is 0, return empty
+      if (!response || response.length === 0 || response[0] === 0) {
+        return [];
+      }
+      // Fetch the package_list vector
+      const listResponse = await this.aptos.view({
+        payload: {
+          function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::search_packages`,
+          functionArguments: [''], // empty string returns all
+        },
+      });
+      if (!listResponse || listResponse.length === 0) {
+        return [];
+      }
+      const results = listResponse[0];
+      if (!results || !(results instanceof MoveVector)) {
+        return [];
+      }
+      // Already parsed as PackageMetadata
+      return results.values.map(result => {
+        if (!result || typeof result !== 'object') {
+          return null;
+        }
+        const values = Object.values(result).map(value => value as MoveValue);
+        return this.parsePackageMetadata(values);
+      }).filter((pkg): pkg is PackageMetadata => pkg !== null);
+    } catch (error) {
+      logger.error('Failed to get all packages', { error });
+      throw createBlockchainError(
+        `Failed to get all packages: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+} 

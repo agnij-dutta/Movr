@@ -1,0 +1,28 @@
+{
+  "network": "devnet",
+  "contract_address": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34",
+  "module_name": "registry",
+  "deployment_transaction": "0x84313cb7b659138d3b4300de09742742df8a3c607cf8cce73d54f0b3feaadb9e",
+  "deployed_at": "2025-01-03T06:22:21.387509Z",
+  "gas_used": 5982,
+  "functions": {
+    "initialize": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::initialize",
+    "publish_package": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::publish_package",
+    "endorse_package": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::endorse_package",
+    "register_endorser": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::register_endorser",
+    "tip_package": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::tip_package"
+  },
+  "view_functions": {
+    "get_package_metadata": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_package_metadata",
+    "get_package_versions": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_package_versions",
+    "get_endorser_info": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_endorser_info",
+    "search_packages": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::search_packages",
+    "get_registry_stats": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_registry_stats"
+  },
+  "events": {
+    "package_published": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackagePublishedEvent",
+    "package_endorsed": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackageEndorsedEvent",
+    "endorser_registered": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::EndorserRegisteredEvent",
+    "package_tipped": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackageTippedEvent"
+  }
+} 

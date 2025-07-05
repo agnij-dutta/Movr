@@ -1,0 +1,35 @@
+# Ignore all build outputs and dependencies in cli/
+cli/build/
+cli/dist/
+cli/node_modules/
+cli/.aptos/
+cli/.apm/
+cli/apm_publish*
+
+# Ignore logs and temp files in cli/
+cli/logs/
+cli/**/*.log
+cli/**/*.tmp
+cli/**/*.temp
+cli/**/*.swp
+cli/**/*.swo
+cli/**/*~
+
+# Ignore IDE/editor files in cli/
+cli/.vscode/
+cli/.idea/
+
+# Ignore OS-specific files in cli/
+cli/.DS_Store
+cli/Thumbs.db
+
+# Ignore test artifacts in cli/
+cli/test_install/
+cli/test_package/
+
+# Allow essential files
+!.gitignore
+!cli/package.json
+!cli/tsconfig.json
+!cli/src/
+!cli/README.md 
