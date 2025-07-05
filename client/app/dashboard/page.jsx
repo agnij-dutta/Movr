@@ -96,9 +96,20 @@ export default function Dashboard() {
           opacity: 0.25,
           zIndex: 0
         }} />
+        {/* Wallet Address Display - Top Right */}
+        {connected && account?.address && (
+          <div className="absolute top-6 right-8 z-20 flex items-center gap-2">
+            <Button variant="ghost" className="text-white hover:bg-white/10">
+              {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
+            </Button>
+            <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-gray-100" size="sm">
+              Logout
+            </Button>
+          </div>
+        )}
         <div className="relative z-10 flex flex-col items-center md:items-start justify-center w-full max-w-5xl mx-auto pt-16 pb-12 text-center md:text-right">
           <span className="tracking-widest text-[#7b8a8e] text-xs md:text-sm mb-4 uppercase" style={{ letterSpacing: '0.2em' }}>MOVR</span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
             Package Dashboard
           </h1>
           <p className="text-xl md:text-2xl text-[#b0b0b0] font-normal max-w-2xl " style={{ fontFamily: 'Inter, sans-serif' }}>

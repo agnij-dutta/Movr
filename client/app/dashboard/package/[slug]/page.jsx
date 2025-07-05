@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -56,6 +57,7 @@ A JavaScript library for building user interfaces
 export default function PackageDetails({ params }) {
   const [activeTab, setActiveTab] = useState("readme");
   const { slug } = useParams();
+  const { account, disconnect, connected } = useWallet();
   
   // In a real app, you would fetch the package data based on the slug
   const packageInfo = packageData;
@@ -69,6 +71,17 @@ export default function PackageDetails({ params }) {
         backgroundAttachment: 'fixed',
         backgroundPosition: 'center',
       }} />
+      {/* Wallet Address Display - Top Right */}
+      {connected && account?.address && (
+        <div className="absolute top-6 right-8 z-30 flex items-center gap-2">
+          <Button variant="ghost" className="text-white hover:bg-white/10">
+            {`${account.address.toString().slice(0, 6)}...${account.address.toString().slice(-4)}`}
+          </Button>
+          <Button onClick={disconnect} className="bg-white text-slate-900 hover:bg-gray-100" size="sm">
+            Logout
+          </Button>
+        </div>
+      )}
       {/* Back Button */}
       <div className="py-6 px-6 md:px-10">
         <Link href="/dashboard">
@@ -81,17 +94,53 @@ export default function PackageDetails({ params }) {
       
       {/* Package Header */}
       <motion.header 
-        className="px-6 md:px-10 pb-4"
+        className="px-6 md:px-10 pt-8 pb-6 flex flex-col items-start gap-4 bg-transparent rounded-xl mt-4 mb-8 shadow-lg border border-[#232D2F]"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flex items-center gap-3">
-          <Badge className="bg-[#3B82F6] text-white uppercase py-1 px-3">TS</Badge>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>{packageInfo.name}</h1>
-          <p className="text-[#B0B0B0] text-sm">
-            {packageInfo.version} • Public • Published {packageInfo.published}
-          </p>
+        {/* Package Name */}
+        <h1 className="text-4xl md:text-6xl font-extrabold mb-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans tracking-tight" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+          {packageInfo.name} <span className="align-super text-lg font-bold text-[#b0b0b0] ml-2">{packageInfo.version}</span>
+        </h1>
+        {/* Short Description */}
+        <p className="text-lg md:text-2xl text-[#b0b0b0] font-normal max-w-2xl mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+          {packageInfo.description}
+        </p>
+        {/* Links Row */}
+        <div className="flex flex-wrap gap-4 mb-2">
+          {/* Website */}
+          <a href={packageInfo.homepage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-white text-[#111] font-semibold text-base rounded-[3px] shadow-[2px_2px_0_0_#222] transition-colors duration-150 min-w-[180px] justify-between hover:bg-white focus:bg-white" style={{ boxShadow: '2px 2px 0 0 #222' }}>
+            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#111" strokeWidth="2"/><path d="M2 12h20M12 2c2.5 3.5 2.5 14.5 0 20M4.93 4.93c4.5 2.5 9.64 2.5 14.14 0M4.93 19.07c4.5-2.5 9.64-2.5 14.14 0" stroke="#111" strokeWidth="2"/></svg> Website</span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+          {/* Discord */}
+          <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-transparent text-white font-semibold text-base rounded-[3px] min-w-[180px] justify-between hover:bg-white hover:text-white transition-colors duration-150">
+            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M20.317 4.369A19.791 19.791 0 0 0 16.885 3.2a.112.112 0 0 0-.119.056c-.516.909-1.095 2.096-1.504 3.037a18.524 18.524 0 0 0-5.524 0A12.76 12.76 0 0 0 8.24 3.256a.115.115 0 0 0-.12-.056A19.736 19.736 0 0 0 3.683 4.369a.104.104 0 0 0-.047.041C.533 9.09-.32 13.578.099 18.021a.117.117 0 0 0 .045.082c1.89 1.39 3.73 2.23 5.527 2.785a.112.112 0 0 0 .123-.042c.426-.586.805-1.204 1.13-1.857a.112.112 0 0 0-.062-.155c-.602-.228-1.175-.51-1.73-.832a.112.112 0 0 1-.011-.186c.116-.087.232-.176.343-.267a.112.112 0 0 1 .117-.013c3.619 1.66 7.523 1.66 11.09 0a.112.112 0 0 1 .118.012c.111.09.227.18.344.267a.112.112 0 0 1-.01.186c-.555.322-1.128.604-1.73.832a.112.112 0 0 0-.062.155c.33.653.708 1.271 1.13 1.857a.112.112 0 0 0 .123.042c1.799-.555 3.638-1.395 5.528-2.785a.115.115 0 0 0 .045-.082c.5-5.177-.838-9.637-3.27-13.611a.104.104 0 0 0-.047-.041ZM8.02 15.331c-1.085 0-1.977-.993-1.977-2.215 0-1.221.876-2.215 1.977-2.215 1.108 0 1.99.994 1.977 2.215 0 1.222-.876 2.215-1.977 2.215Zm7.96 0c-1.085 0-1.977-.993-1.977-2.215 0-1.221.876-2.215 1.977-2.215 1.108 0 1.99.994 1.977 2.215 0 1.222-.876 2.215-1.977 2.215Z" fill="#111"/></svg> Discord</span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+          {/* Github */}
+          <a href={packageInfo.repository} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-transparent text-white font-semibold text-base rounded-[3px] min-w-[180px] justify-between hover:bg-white hover:text-white transition-colors duration-150">
+            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.157-1.11-1.465-1.11-1.465-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.339-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.295 2.748-1.025 2.748-1.025.546 1.378.202 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.847-2.338 4.695-4.566 4.944.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .267.18.578.688.48C19.138 20.2 22 16.447 22 12.021 22 6.484 17.523 2 12 2Z" fill="#111"/></svg> Github</span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+          {/* Telegram */}
+          <a href="https://t.me" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-transparent text-white font-semibold text-base rounded-[3px] min-w-[180px] justify-between hover:bg-white hover:text-white transition-colors duration-150">
+            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21.426 4.337c-.242-.2-.59-.23-.87-.08L3.7 13.6c-.28.15-.44.46-.39.77.05.31.29.54.6.57l4.13.37 1.6 4.04c.11.28.38.46.68.46h.02c.31-.01.58-.21.67-.51l2.01-6.36 4.13 3.62c.16.14.37.2.57.2.13 0 .26-.03.38-.09.29-.14.47-.44.44-.77l-1.01-9.13c-.03-.28-.19-.53-.44-.67ZM9.7 17.13l-1.19-3.01 2.7 2.37-1.51.64Zm2.13-1.01-2.98-2.61 7.13-6.25-4.15 8.86Zm1.13 2.7-.01-.01.01.01Zm5.13-2.13-3.47-3.04 2.47-5.28 1 8.32Z" fill="#111"/></svg> Telegram</span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+          {/* X (Twitter) */}
+          <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 border border-white bg-transparent text-white font-semibold text-base rounded-[3px] min-w-[180px] justify-between hover:bg-white hover:text-white transition-colors duration-150">
+            <span className="flex items-center gap-2"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M17.53 6.47a.75.75 0 0 0-1.06 0l-4.72 4.72-4.72-4.72a.75.75 0 1 0-1.06 1.06l4.72 4.72-4.72 4.72a.75.75 0 1 0 1.06 1.06l4.72-4.72 4.72 4.72a.75.75 0 1 0 1.06-1.06l-4.72-4.72 4.72-4.72a.75.75 0 0 0 0-1.06Z" fill="#111"/></svg> X (Twitter)</span>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+        </div>
+        {/* Platforms Section */}
+        <div className="mt-2 flex flex-col gap-1">
+          <span className="text-xs tracking-widest text-[#7b8a8e] uppercase mb-1" style={{ letterSpacing: '0.2em' }}>PLATFORMS</span>
+          <div className="flex items-center gap-2 text-base text-[#b0b0b0] font-medium">
+            <span className="inline-block"><svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#b0b0b0" strokeWidth="2"/><path d="M2 12h20M12 2c2.5 3.5 2.5 14.5 0 20M4.93 4.93c4.5 2.5 9.64 2.5 14.14 0M4.93 19.07c4.5-2.5 9.64-2.5 14.14 0" stroke="#b0b0b0" strokeWidth="2"/></svg></span> Web
+          </div>
         </div>
       </motion.header>
       
