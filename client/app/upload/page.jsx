@@ -235,17 +235,32 @@ export default function UploadPage() {
           background: 'url(/dash.jpeg) center/cover no-repeat',
           opacity: 0.30
         }} />
+        
+        {/* Action buttons that are always visible when file is selected */}
+        {selectedFile && step === 0 && (
+          <div className="flex gap-4 justify-center mb-4 sticky top-0 z-30 bg-[#0A0A0A]/70 py-4 px-6 rounded-xl backdrop-blur-md border border-[#334155]">
+            <Button
+              onClick={() => setSelectedFile(null)}
+              className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2 bg-transparent border border-[#d6ff4b] font-bold rounded-xl shadow-lg px-6 py-2"
+            >
+              Discard Files
+            </Button>
+            <Button
+              onClick={() => setStep(1)}
+              className="text-white hover:bg-[#d6ff4b] hover:text-[#232b3b] hover:shadow-[0_0_16px_4px_rgba(214,255,75,0.4)] transition-all flex items-center gap-2 bg-transparent border border-[#d6ff4b] font-bold rounded-xl shadow-lg px-6 py-2"
+            >
+              Continue <ArrowRight size={16} className="ml-1" />
+            </Button>
+          </div>
+        )}
+        
         {step === 0 && (
           <div className="w-full flex flex-col items-center gap-4">
             <div className="dark w-full" style={{ colorScheme: 'dark' }}>
-              <FileUploadDemo onFileSelected={file => { setSelectedFile(file); }} />
+              <FileUploadDemo onFileSelected={file => { 
+                setSelectedFile(file); 
+              }} />
             </div>
-            {selectedFile && (
-              <div className="flex gap-2 mt-4">
-                <Button onClick={() => setSelectedFile(null)} className="bg-[#d6ff4b] text-[#232b3b] font-bold rounded-xl shadow-lg hover:bg-[#eaff7b] transition px-6 py-2">Remove</Button>
-                <Button onClick={() => setStep(1)} disabled={!selectedFile} className="bg-[#d6ff4b] text-[#232b3b] font-bold rounded-xl shadow-lg hover:bg-[#eaff7b] transition px-6 py-2">Next <ArrowRight size={16} className="ml-1" /></Button>
-              </div>
-            )}
           </div>
         )}
         {step === 1 && (

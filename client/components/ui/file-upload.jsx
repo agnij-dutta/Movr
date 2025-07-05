@@ -71,7 +71,10 @@ export const FileUpload = ({
       } else {
         setError("Move.toml not found in folder");
       }
-      onChange && onChange({ zipFile: zipBlob, moveToml, packageName, version, files: fileList });
+      // Ensure onChange is called with the processed files
+      if (onChange) {
+        onChange(fileList);
+      }
     } catch (err) {
       setError("Failed to zip folder or extract Move.toml");
     }
