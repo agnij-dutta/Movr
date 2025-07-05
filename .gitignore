@@ -1,6 +1,5 @@
 # Ignore all build outputs and dependencies in cli/
 cli/build/
-cli/dist/
 cli/node_modules/
 cli/.aptos/
 cli/.apm/
