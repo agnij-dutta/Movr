@@ -218,7 +218,7 @@ export default function Dashboard() {
           <Search size={32} className="text-[#b0b0b0] mr-4" />
           <Input
             type="text"
-            placeholder="Search 213 projects"
+            placeholder={`Search ${stats.totalPackages} packages`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-transparent border-none outline-none shadow-none text-xl text-[#b0b0b0] placeholder:text-[#5c6a6e] focus:ring-0 focus:outline-none flex-1 px-0"
