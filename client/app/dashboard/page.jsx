@@ -14,7 +14,8 @@ import {
   Copy,
   LogOut,
   ChevronDown,
-  X
+  X,
+  Upload
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -150,6 +151,14 @@ export default function Dashboard() {
         backgroundAttachment: 'fixed',
         backgroundPosition: 'center',
       }} />
+      {/* Upload Package Button - Top Left */}
+      <div className="absolute top-6 left-8 z-20 flex items-center gap-2">
+        <Link href="/upload">
+          <Button variant="ghost" className="text-white hover:bg-white hover:text-black flex items-center gap-2">
+            <Upload size={18} className="mr-1" /> Upload Package
+          </Button>
+        </Link>
+      </div>
       {/* Hero Section */}
       <section className="relative flex flex-col items-center justify-center text-center min-h-[340px] md:min-h-[400px] px-4 md:px-0 overflow-hidden" style={{ zIndex: 1 }}>
         <div className="absolute inset-0 w-full h-full" style={{
