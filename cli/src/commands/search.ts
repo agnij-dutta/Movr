@@ -100,44 +100,55 @@ export class SearchCommand {
   }
 
   private async displaySummaryResults(packages: PackageMetadata[]): Promise<void> {
+    let skipped = 0;
     for (let i = 0; i < packages.length; i++) {
       const pkg = packages[i];
+      if (!pkg.name || !pkg.version) {
+        skipped++;
+        console.warn('Skipping package with missing name or version:', pkg);
+        continue;
+      }
       console.log(`\n${chalk.cyan(pkg.name)} ${chalk.yellow(`(${pkg.version})`)}`);
       console.log(`   ${chalk.italic(pkg.description || 'No description available')}`);
       console.log(`   ${chalk.green(pkg.endorsements?.length || 0)} endorsements`);
     }
+    if (skipped > 0) {
+      console.warn(`\n${skipped} package(s) were skipped due to missing name or version.`);
+    }
   }
 
   private async displayDetailedResults(packages: PackageMetadata[]): Promise<void> {
+    let skipped = 0;
     for (let i = 0; i < packages.length; i++) {
       const pkg = packages[i];
+      if (!pkg.name || !pkg.version) {
+        skipped++;
+        console.warn('Skipping package with missing name or version:', pkg);
+        continue;
+      }
       console.log(`${chalk.gray(`${i + 1}.`)} ${chalk.cyan.bold(pkg.name)}`);
       console.log(`   Version: ${chalk.yellow(pkg.version)}`);
-      
       if (pkg.description) {
         console.log(`   Description: ${pkg.description}`);
       }
-      
       if ('homepage' in pkg) {
         console.log(`   Homepage: ${chalk.blue.underline((pkg as any).homepage)}`);
       }
-      
       if ('repository' in pkg) {
         console.log(`   Repository: ${chalk.blue.underline((pkg as any).repository)}`);
       }
-      
       if ('license' in pkg) {
         console.log(`   License: ${(pkg as any).license}`);
       }
-      
       console.log(`   IPFS: ${chalk.gray(pkg.ipfsHash)}`);
       console.log(`   Endorsements: ${chalk.green(pkg.endorsements?.length || 0)}`);
-      
       if (pkg.tags && pkg.tags.length > 0) {
         console.log(`   Tags: ${chalk.magenta(pkg.tags.map((t: string) => `#${t}`).join(' '))}`);
       }
-      
       console.log(chalk.gray('─'.repeat(60)));
+    }
+    if (skipped > 0) {
+      console.warn(`\n${skipped} package(s) were skipped due to missing name or version.`);
     }
   }
 } 

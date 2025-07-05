@@ -744,22 +744,13 @@ export class AptosBlockchainService {
       if (!listResponse || listResponse.length === 0) {
         return [];
       }
-      const results = listResponse[0];
-      // Accept both MoveVector and plain array
-      let values: any[] = [];
-      if (results && Array.isArray(results)) {
-        values = results;
-      } else if (results && typeof results === 'object' && 'values' in results && Array.isArray(results.values)) {
-        values = results.values;
-      } else {
-        return [];
-      }
-      return values.map(result => {
+      // Correctly unwrap the nested array
+      const results = Array.isArray(listResponse) && Array.isArray(listResponse[0]) ? listResponse[0] : [];
+      return results.map(result => {
         if (!result || typeof result !== 'object') {
           return null;
         }
-        const parsed = Object.values(result).map(value => value as MoveValue);
-        return this.parsePackageMetadata(parsed);
+        return this.parsePackageMetadata(result);
       }).filter((pkg): pkg is PackageMetadata => pkg !== null);
     } catch (error) {
       logger.error('Failed to get all packages', { error });

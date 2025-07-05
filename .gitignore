@@ -5,6 +5,7 @@ cli/node_modules/
 cli/.aptos/
 cli/.apm/
 cli/apm_publish*
+cli/cli_binaries/
 node_modules
 
 # Ignore logs and temp files in cli/
@@ -27,6 +28,15 @@ cli/Thumbs.db
 # Ignore test artifacts in cli/
 cli/test_install/
 cli/test_package*
+api/.next
+api/.env
+api/.env.local
+api/.env.development.local
+api/.env.test.local
+api/.env.production.local
+api/.env.development
+api/.env.test
+api/.env.production
 
 # Allow essential files
 !.gitignore
