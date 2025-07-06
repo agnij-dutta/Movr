@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Heart, Code, Package, GitBranch, Clock, ExternalLink, Copy, ChevronDown } from "lucide-react";
+import { ArrowLeft, Download, Heart, Code, Package, GitBranch, Clock, ExternalLink, Copy, ChevronDown, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-  import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useAptosEndorse } from "@/lib/hooks/useAptosEndorse";
 import { useAptosTip } from "@/lib/hooks/useAptosTip";
@@ -220,16 +220,83 @@ export default function PackageDetails() {
 
   // Loading and error states
   if (metaLoading || ipfsLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Loading package...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#18181b] relative">
+        <div className="absolute inset-0 w-full h-full -z-10 pointer-events-none select-none" style={{
+          backgroundImage: 'url(/dash-back.jpeg)',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+          filter: 'blur(2px) brightness(0.7)',
+        }} />
+        <Card className="bg-[#232b3b]/80 border-none shadow-xl p-8 flex flex-col items-center gap-4 z-10">
+          <Loader2 className="animate-spin text-[#d6ff4b] w-10 h-10 mb-2" />
+          <span className="text-lg text-white font-semibold">Loading package...</span>
+        </Card>
+      </div>
+    );
   }
   if (metaError) {
-    return <div className="min-h-screen flex items-center justify-center text-red-400">Error loading package: {metaError.message}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#18181b] relative">
+        <div className="absolute inset-0 w-full h-full -z-10 pointer-events-none select-none" style={{
+          backgroundImage: 'url(/dash-back.jpeg)',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+          filter: 'blur(2px) brightness(0.7)',
+        }} />
+        <Card className="bg-[#232b3b]/80 border-none shadow-xl p-8 flex flex-col items-center gap-4 z-10">
+          <span className="text-2xl font-bold text-red-400 mb-2">Error loading package</span>
+          <span className="text-white text-base mb-4">{metaError.message}</span>
+          <Link href="/dashboard">
+            <Button variant="secondary" className="bg-[#d6ff4b] text-[#232b3b] font-bold">Back to Dashboard</Button>
+          </Link>
+        </Card>
+      </div>
+    );
   }
   if (versionError) {
-    return <div className="min-h-screen flex items-center justify-center text-white">{versionError}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#18181b] relative">
+        <div className="absolute inset-0 w-full h-full -z-10 pointer-events-none select-none" style={{
+          backgroundImage: 'url(/dash-back.jpeg)',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+          filter: 'blur(2px) brightness(0.7)',
+        }} />
+        <Card className="bg-[#232b3b]/80 border-none shadow-xl p-8 flex flex-col items-center gap-4 z-10">
+          <span className="text-2xl font-bold text-white mb-2">{versionError}</span>
+          <Link href="/dashboard">
+            <Button variant="secondary" className="bg-[#d6ff4b] text-[#232b3b] font-bold">Back to Dashboard</Button>
+          </Link>
+        </Card>
+      </div>
+    );
   }
   if (!packageInfo.name) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Package not found.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#18181b] relative">
+        <div className="absolute inset-0 w-full h-full -z-10 pointer-events-none select-none" style={{
+          backgroundImage: 'url(/dash-back.jpeg)',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+          filter: 'blur(2px) brightness(0.7)',
+        }} />
+        <Card className="bg-[#232b3b]/80 border-none shadow-xl p-8 flex flex-col items-center gap-4 z-10">
+          <span className="text-2xl font-bold text-white mb-2">Package not found.</span>
+          <Link href="/dashboard">
+            <Button variant="secondary" className="bg-[#d6ff4b] text-[#232b3b] font-bold">Back to Dashboard</Button>
+          </Link>
+        </Card>
+      </div>
+    );
   }
 
   return (
