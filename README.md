@@ -304,6 +304,8 @@ movr config set-network testnet
 - **Q3 2026**: Advanced analytics dashboard
 - **Q4 2026**: Package governance features
 
+##CONTRACT_ADDRESS=0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34
+
 ## 🔗 Integration Guides
 
 - [Contract Deployment Guide](./contract-deployment-guide.md)
