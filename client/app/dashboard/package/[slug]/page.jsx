@@ -158,14 +158,18 @@ export default function PackageDetails() {
   }, [metadata]);
 
   useEffect(() => {
-    if (!account?.address) {
-      setIsEndorser(null);
-      return;
-    }
+    if (!account?.address) return;
     setEndorserLoading(true);
-    getEndorserInfo(account.address)
-      .then(info => setIsEndorser(!!(info && info.is_active !== false)))
-      .catch(() => setIsEndorser(false))
+    console.log('Calling getEndorserInfo', account?.address);
+    getEndorserInfo(account.address?.toString())
+      .then(info => {
+        console.log('Endorser info:', info);
+        setIsEndorser(!!(info && info.is_active !== false));
+      })
+      .catch((error) => {
+        console.log('getEndorserInfo error', error);
+        setIsEndorser(false);
+      })
       .finally(() => setEndorserLoading(false));
   }, [account]);
 
@@ -175,7 +179,13 @@ export default function PackageDetails() {
   const userHasEndorsed = !!(
     userAddressStr &&
     Array.isArray(packageInfo.endorsements) &&
-    packageInfo.endorsements.map(e => (e || "").toLowerCase()).includes(userAddressStr.toLowerCase())
+    packageInfo.endorsements
+      .map(e => {
+        if (typeof e === "string") return e.toLowerCase();
+        if (e && typeof e === "object" && typeof e.address === "string") return e.address.toLowerCase();
+        return "";
+      })
+      .includes(userAddressStr.toLowerCase())
   );
 
   // Endorse/tip handlers (example usage)
