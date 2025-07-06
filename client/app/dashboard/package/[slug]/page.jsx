@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+  import { useParams, useRouter } from "next/navigation";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useAptosEndorse } from "@/lib/hooks/useAptosEndorse";
 import { useAptosTip } from "@/lib/hooks/useAptosTip";
@@ -41,6 +41,7 @@ export default function PackageDetails() {
   const [activeTab, setActiveTab] = useState("readme");
   const [showLogout, setShowLogout] = useState(false);
   const { account, disconnect, connected } = useWallet();
+  const router = useRouter();
 
   // Hooks for on-chain and IPFS
   const { endorse, txHash: endorseTx, loading: endorseLoading } = useAptosEndorse();
@@ -72,6 +73,13 @@ export default function PackageDetails() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState(false);
+
+  // Redirect to landing if not connected
+  useEffect(() => {
+    if (!connected) {
+      router.replace("/");
+    }
+  }, [connected, router]);
 
   // Fetch package metadata and IPFS content
   useEffect(() => {

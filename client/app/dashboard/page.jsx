@@ -69,6 +69,13 @@ export default function Dashboard() {
   const [searchResults, setSearchResults] = useState([]);
   const [stats, setStats] = useState({ totalPackages: 0, totalEndorsements: 0, totalDownloads: 0, totalTips: 0 });
 
+  // Redirect to landing if not connected
+  useEffect(() => {
+    if (!connected) {
+      router.replace("/");
+    }
+  }, [connected, router]);
+
   // Fetch all packages and calculate stats on mount
   useEffect(() => {
     (async () => {
