@@ -18,6 +18,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
+import { getEndorserInfo, registerEndorser } from "@/lib/aptos";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -60,6 +61,17 @@ export default function PackageDetails() {
 
   // Add state for Move source code
   const [moveSourceCode, setMoveSourceCode] = useState("");
+
+  // Add state for endorsement
+  const [endorseSuccess, setEndorseSuccess] = useState(false);
+  const [endorseErrorMsg, setEndorseErrorMsg] = useState("");
+
+  // Add state for endorser check and registration
+  const [isEndorser, setIsEndorser] = useState(null); // null = unknown, true/false = checked
+  const [endorserLoading, setEndorserLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+  const [registerSuccess, setRegisterSuccess] = useState(false);
 
   // Fetch package metadata and IPFS content
   useEffect(() => {
@@ -137,12 +149,66 @@ export default function PackageDetails() {
     })();
   }, [metadata]);
 
+  useEffect(() => {
+    if (!account?.address) {
+      setIsEndorser(null);
+      return;
+    }
+    setEndorserLoading(true);
+    getEndorserInfo(account.address)
+      .then(info => setIsEndorser(!!(info && info.is_active !== false)))
+      .catch(() => setIsEndorser(false))
+      .finally(() => setEndorserLoading(false));
+  }, [account]);
+
   // Fallbacks for UI
   const packageInfo = metadata || {};
+  const userAddressStr = account?.address?.toString?.() || "";
+  const userHasEndorsed = !!(
+    userAddressStr &&
+    Array.isArray(packageInfo.endorsements) &&
+    packageInfo.endorsements.map(e => (e || "").toLowerCase()).includes(userAddressStr.toLowerCase())
+  );
 
   // Endorse/tip handlers (example usage)
-  // const handleEndorse = async () => await endorse(account, slug, packageInfo.version);
-  // const handleTip = async (amount) => await tip(account, slug, packageInfo.version, amount);
+  const handleEndorse = async () => {
+    console.log('[Endorse] Button clicked');
+    setEndorseSuccess(false);
+    setEndorseErrorMsg("");
+    try {
+      console.log('[Endorse] account:', account);
+      console.log('[Endorse] packageInfo:', packageInfo);
+      if (!account) {
+        setEndorseErrorMsg('Wallet not connected');
+        console.error('[Endorse] No account found');
+        return;
+      }
+      const result = await endorse(account, packageInfo.name, packageInfo.version);
+      console.log('[Endorse] Transaction result:', result);
+      setEndorseSuccess(true);
+      // Optionally, refresh metadata to update endorsement count
+      setMetadata({ ...metadata, endorsements: [...(metadata.endorsements || []), account?.address] });
+    } catch (e) {
+      setEndorseErrorMsg(e?.message || "Failed to endorse");
+      console.error('[Endorse] Error:', e);
+    }
+  };
+
+  const handleRegisterEndorser = async () => {
+    setRegisterLoading(true);
+    setRegisterError("");
+    setRegisterSuccess(false);
+    try {
+      const stakeAmount = 100000000; // You can prompt for this if needed
+      await registerEndorser(account, stakeAmount);
+      setRegisterSuccess(true);
+      setIsEndorser(true);
+    } catch (e) {
+      setRegisterError(e?.message || "Failed to register as endorser");
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
 
   // Loading and error states
   if (metaLoading || ipfsLoading) {
@@ -204,6 +270,38 @@ export default function PackageDetails() {
         {/* Package Name */}
         <h1 className="text-4xl md:text-6xl font-extrabold mb-2 bg-gradient-to-r from-[#eab08a] via-[#a6d6d6] to-[#eab08a] text-transparent bg-clip-text font-sans tracking-tight" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
           {packageInfo.name} <span className="align-super text-lg font-bold text-[#b0b0b0] ml-2">{packageInfo.version || ""}</span>
+          {endorserLoading ? (
+            <button className="ml-4 px-3 py-1 text-sm bg-[#b0b0b0] text-[#232b3b] rounded font-semibold" style={{ minWidth: 90 }} disabled>
+              Checking...
+            </button>
+          ) : isEndorser ? (
+            <button
+              className="ml-4 px-3 py-1 text-sm bg-[#d6ff4b] text-[#232b3b] rounded font-semibold border border-[#b0b0b0]/30 shadow-sm"
+              style={{ minWidth: 90 }}
+              onClick={handleEndorse}
+              disabled={endorseLoading || userHasEndorsed}
+            >
+              {userHasEndorsed ? "Already Endorsed" : (endorseLoading ? "Endorsing..." : "Endorse")}
+            </button>
+          ) : userHasEndorsed ? (
+            <button className="ml-4 px-3 py-1 text-sm bg-[#b0b0b0] text-[#232b3b] rounded font-semibold border border-[#b0b0b0]/30 shadow-sm" style={{ minWidth: 160 }} disabled>
+              Already Endorsed
+            </button>
+          ) : (
+            <button
+              className="ml-4 px-3 py-1 text-sm bg-[#3B82F6] text-white rounded font-semibold hover:bg-[#b0b0b0] transition border border-[#b0b0b0]/30 shadow-sm"
+              style={{ minWidth: 160 }}
+              onClick={handleRegisterEndorser}
+              disabled={registerLoading}
+            >
+              {registerLoading ? "Registering..." : "Register as Endorser"}
+            </button>
+          )}
+          {registerSuccess && <span className="ml-2 text-green-400">Registered!</span>}
+          {registerError && <span className="ml-2 text-red-400">{registerError}</span>}
+          <span className="ml-2 text-[#b0b0b0] text-base">{Array.isArray(packageInfo.endorsements) ? packageInfo.endorsements.length : 0} endorsements</span>
+          {endorseSuccess && <span className="ml-2 text-green-400">Endorsed!</span>}
+          {endorseErrorMsg && <span className="ml-2 text-red-400">{endorseErrorMsg}</span>}
         </h1>
         {/* Short Description */}
         <p className="text-lg md:text-2xl text-[#b0b0b0] font-normal max-w-2xl mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>

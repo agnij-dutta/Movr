@@ -465,11 +465,11 @@ export default function Dashboard() {
                 <CardContent className="pb-6 space-y-3">
                   {topPackages.slice(0, 3).map((pkg, index) => (
                     <motion.div 
-                      key={`endorse-${pkg.name}`}
+                      key={`endorse-${pkg.name}-${pkg.version}`}
                       className="flex items-center justify-between p-2 rounded-lg hover:bg-[#3A3A3A] transition-colors"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
                     >
                       <span className="font-medium text-white">{pkg.name}</span>
                       <div className="flex items-center gap-1">

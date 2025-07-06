@@ -11,7 +11,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import WalletAddressButton from "@/components/ui/WalletAddressButton";
 import { useRouter } from "next/navigation";
 import JSZip from "jszip";
-import { pinJSON, uploadFile } from "@/lib/ipfs";
+import { pinJSON, uploadFile, PINATA_JWT } from "@/lib/ipfs";
 import { publishPackage } from "@/lib/aptos";
 
 const steps = [
@@ -132,22 +132,10 @@ export default function UploadPage() {
     setUploading(true);
     setProgress(10);
     try {
-      // Upload ZIP to IPFS
-      const ipfsHash = await (async () => {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('pinataMetadata', JSON.stringify({ name, keyvalues: { name, description, tags: tags.join(",") } }));
-        const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}` },
-          body: formData,
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        setProgress(50);
-        return data.IpfsHash;
-      })();
-      // Publish on-chain
+      // Upload ZIP to IPFS using helper
+      const ipfsHash = await uploadFile(selectedFile, { name, description, tags: tags.join(",") });
+      setProgress(50);
+      // Publish on-chain (wallet prompt)
       await publishPackage(account, {
         name,
         version: "1.0.0", // TODO: add version field to form if needed
@@ -161,7 +149,10 @@ export default function UploadPage() {
       setProgress(100);
       setUploading(false);
       setToast("Package published successfully!");
-      setTimeout(() => setToast(null), 2500);
+      setTimeout(() => {
+        setToast(null);
+        router.push("/dashboard");
+      }, 1500);
     } catch (err) {
       setUploading(false);
       setToast("Failed to publish: " + (err?.message || err));

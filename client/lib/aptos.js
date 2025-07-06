@@ -18,22 +18,24 @@ export async function connectWallet() {
 
 // Publish a package (calls publish_package)
 export async function publishPackage(signer, metadata) {
-  const functionArguments = [
-    new MoveString(metadata.name),
-    new MoveString(metadata.version),
-    new MoveString(metadata.ipfsHash),
-    new U8(0), // 0 = library
-    (metadata.tags || []).map(t => new MoveString(String(t))),
-    new MoveString(metadata.description || ''),
-  ];
-  const tx = await aptos.transaction.build.simple({
-    sender: signer.address,
-    data: {
-      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::publish_package`,
-      functionArguments,
-    },
-  });
-  const signed = await window.aptos.signAndSubmitTransaction(tx);
+  if (!window.aptos) {
+    throw new Error('Aptos wallet not found');
+  }
+  const payload = {
+    type: "entry_function_payload",
+    function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::publish_package`,
+    type_arguments: [],
+    arguments: [
+      metadata.name,
+      metadata.version,
+      metadata.ipfsHash,
+      0, // 0 = library
+      metadata.tags || [],
+      metadata.description || "",
+    ],
+  };
+  console.log('[publishPackage] TX payload for wallet:', payload);
+  const signed = await window.aptos.signAndSubmitTransaction({ payload });
   return signed.hash;
 }
 
@@ -50,15 +52,26 @@ export async function searchPackages(query) {
 
 // Endorse a package
 export async function endorsePackage(signer, name, version) {
-  const tx = await aptos.transaction.build.simple({
-    sender: signer.address,
-    data: {
+  try {
+    console.log('[endorsePackage] Called with:', { signer, name, version });
+    if (!window.aptos) {
+      console.error('[endorsePackage] window.aptos not found');
+      throw new Error('Aptos wallet not found');
+    }
+    const payload = {
+      type: "entry_function_payload",
       function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::endorse_package`,
-      functionArguments: [name, version],
-    },
-  });
-  const signed = await window.aptos.signAndSubmitTransaction(tx);
-  return signed.hash;
+      type_arguments: [],
+      arguments: [name, version],
+    };
+    console.log('[endorsePackage] TX payload for wallet:', payload);
+    const signed = await window.aptos.signAndSubmitTransaction({ payload });
+    console.log('[endorsePackage] Transaction signed:', signed);
+    return signed.hash;
+  } catch (e) {
+    console.error('[endorsePackage] Error:', e);
+    throw e;
+  }
 }
 
 // Tip a package
@@ -70,7 +83,7 @@ export async function tipPackage(signer, name, version, amount) {
       functionArguments: [name, version, amount],
     },
   });
-  const signed = await window.aptos.signAndSubmitTransaction(tx);
+  const signed = await window.aptos.signAndSubmitTransaction({ payload: tx });
   return signed.hash;
 }
 
@@ -130,4 +143,38 @@ export async function getRegistryStats() {
     totalDownloads: stats.total_downloads,
     totalTips: stats.total_tips,
   };
+}
+
+// Register as an endorser
+export async function registerEndorser(signer, stakeAmount) {
+  try {
+    if (!window.aptos) {
+      console.error('[registerEndorser] window.aptos not found');
+      throw new Error('Aptos wallet not found');
+    }
+    const payload = {
+      type: "entry_function_payload",
+      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::register_endorser`,
+      type_arguments: [],
+      arguments: [stakeAmount],
+    };
+    console.log('[registerEndorser] TX payload for wallet:', payload);
+    const signed = await window.aptos.signAndSubmitTransaction({ payload });
+    console.log('[registerEndorser] Transaction signed:', signed);
+    return signed.hash;
+  } catch (e) {
+    console.error('[registerEndorser] Error:', e);
+    throw e;
+  }
+}
+
+// Get endorser info for an address
+export async function getEndorserInfo(address) {
+  const res = await aptos.view({
+    payload: {
+      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::get_endorser_info`,
+      functionArguments: [address],
+    },
+  });
+  return res && res[0] ? res[0] : null;
 } 
