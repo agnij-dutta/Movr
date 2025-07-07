@@ -1,7 +1,4 @@
-/// APM (Aptos Package Manager) Registry
-/// 
-/// A decentralized, on-chain package registry for the Move ecosystem on Aptos.
-/// Enables publishing, endorsing, and discovering Move packages with security validation.
+
 module apm_registry::registry {
     use std::string::{Self, String};
     use std::vector;

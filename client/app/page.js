@@ -35,94 +35,8 @@ export default function MovrLanding() {
   const router = useRouter();
   const tabs = [
     {
-      key: "guides",
-      label: "Guides",
-      icon: BookOpen,
-      content: (
-        <Card className="mintlify-card rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-slate-900/80 px-4 py-3 border-b border-teal-700/30 flex items-center gap-3">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <span className="text-gray-300 text-sm">Guides</span>
-            </div>
-            <div className="p-6">
-              <div className="text-white font-bold text-lg mb-2">Getting Started Guide</div>
-              <div className="text-teal-300 text-sm mb-4">Learn how to set up and use the documentation platform efficiently.</div>
-              <ul className="list-disc pl-5 text-gray-200 text-sm space-y-1">
-                <li>Quickstart</li>
-                <li>Development</li>
-                <li>Global Settings</li>
-                <li>Navigation</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      ),
-    },
-    {
-      key: "ai-chat",
-      label: "AI Chat",
-      icon: MessageSquare,
-      content: (
-        <Card className="mintlify-card rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-slate-900/80 px-4 py-3 border-b border-teal-700/30 flex items-center gap-3">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <span className="text-gray-300 text-sm">Movr</span>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Search className="w-4 h-4 text-teal-400" />
-                <div className="flex-1 bg-slate-800/70 rounded px-3 py-2 text-white">
-                  Give me a list of all the themes
-                </div>
-                <Badge className="bg-gray-700 text-gray-300">ESC</Badge>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 p-3 rounded bg-slate-800/40 mb-6">
-                  <div className="mt-1 text-teal-500 flex-shrink-0">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-white font-medium mb-1">Can you tell me about Mintlify themes?</div>
-                    <div className="text-teal-300 text-sm">Use our AI to find answers to your questions</div>
-                  </div>
-                  <div className="ml-auto text-gray-400">
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="pl-6 space-y-4">
-                  <div>
-                    <div className="text-teal-400 text-sm">Components › Themes</div>
-                    <div className="text-teal-300 text-sm">Themes are the easiest way to customise your docs on Mintli...</div>
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">Getting started with the Prism Theme</div>
-                    <div className="text-teal-300 text-sm">Prism is our most versatile theme that combines versatility and elega...</div>
-                  </div>
-                  <div className="inline-flex items-center gap-2 text-xs text-teal-400 px-2 py-1 bg-slate-800/50 rounded">
-                    <span className="bg-teal-900/50 text-teal-400 text-xs px-1 rounded">GET</span>
-                    <span>Get a list of themes</span>
-                  </div>
-                  <div className="text-teal-300 text-sm">Generate a list of themes from mint.json file</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ),
-    },
-    {
-      key: "api-reference",
-      label: "API Reference",
+      key: "terminal",
+      label: "Terminal",
       icon: FileText,
       content: (
         <Card className="mintlify-card rounded-xl overflow-hidden">
@@ -133,25 +47,20 @@ export default function MovrLanding() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <span className="text-gray-300 text-sm">API Reference</span>
+              <span className="text-gray-300 text-sm">Terminal</span>
             </div>
-            <div className="p-6">
-              <div className="text-white font-bold text-lg mb-2">API Endpoints</div>
-              <div className="text-teal-300 text-sm mb-4">Explore the available API endpoints and their usage.</div>
-              <ul className="list-disc pl-5 text-gray-200 text-sm space-y-1">
-                <li>GET /themes</li>
-                <li>POST /docs</li>
-                <li>PUT /settings</li>
-                <li>DELETE /docs/:id</li>
-              </ul>
+            <div className="p-6 flex flex-col items-center h-full w-full">
+              <img src="/terminal.jpg" alt="Terminal" className="rounded-lg w-full h-full object-cover" style={{minHeight: '400px'}} />
+              <div className="text-white font-bold text-lg mt-8 mb-2">Terminal Access</div>
+              <div className="text-teal-300 text-sm mb-4">Interact with the Movr CLI directly from your terminal.</div>
             </div>
           </CardContent>
         </Card>
       ),
     },
     {
-      key: "sdk-library",
-      label: "SDK Library",
+      key: "web-ui",
+      label: "Web UI",
       icon: Code,
       content: (
         <Card className="mintlify-card rounded-xl overflow-hidden">
@@ -162,52 +71,19 @@ export default function MovrLanding() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <span className="text-gray-300 text-sm">SDK Library</span>
+              <span className="text-gray-300 text-sm">Web UI</span>
             </div>
-            <div className="p-6">
-              <div className="text-white font-bold text-lg mb-2">SDKs</div>
-              <div className="text-teal-300 text-sm mb-4">Download and integrate SDKs for your favorite languages.</div>
-              <ul className="list-disc pl-5 text-gray-200 text-sm space-y-1">
-                <li>JavaScript SDK</li>
-                <li>Python SDK</li>
-                <li>Go SDK</li>
-                <li>Java SDK</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      ),
-    },
-    {
-      key: "changelog",
-      label: "Changelog",
-      icon: BarChart3,
-      content: (
-        <Card className="mintlify-card rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-slate-900/80 px-4 py-3 border-b border-teal-700/30 flex items-center gap-3">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <span className="text-gray-300 text-sm">Changelog</span>
-            </div>
-            <div className="p-6">
-              <div className="text-white font-bold text-lg mb-2">Latest Updates</div>
-              <div className="text-teal-300 text-sm mb-4">Stay up to date with the latest changes and improvements.</div>
-              <ul className="list-disc pl-5 text-gray-200 text-sm space-y-1">
-                <li>v1.2.0 - Added new AI chat features</li>
-                <li>v1.1.0 - Improved SDK integration</li>
-                <li>v1.0.0 - Initial release</li>
-              </ul>
+            <div className="p-6 flex flex-col items-center h-full w-full">
+              <img src="/pack.png" alt="Web UI" className="rounded-lg w-full h-full object-cover" style={{minHeight: '400px'}} />
+              <div className="text-white font-bold text-lg mt-8 mb-2">Web User Interface</div>
+              <div className="text-teal-300 text-sm mb-4">Manage and interact with Movr through a modern web interface.</div>
             </div>
           </CardContent>
         </Card>
       ),
     },
   ];
-  const [activeTab, setActiveTab] = useState("ai-chat");
+  const [activeTab, setActiveTab] = useState("terminal");
 
   // Redirect to /dashboard if wallet is connected
   useEffect(() => {
@@ -402,18 +278,8 @@ export default function MovrLanding() {
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <Card className="mintlify-card mintlify-card-hover rounded-xl overflow-hidden border-0">
             <CardContent className="p-8">
-              <div className="bg-black/30 rounded-lg p-6 mb-8 h-64 flex items-center justify-center">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                </div>
+              <div className="rounded-lg mb-8 h-64 flex items-center justify-center bg-slate-900/40">
+                <img src="/dash-pic.png" alt="Effortless, beautiful by default" className="object-contain max-w-[90%] max-h-[90%] mx-auto my-auto rounded-lg shadow-lg" />
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Effortless, beautiful by default</h3>
             </CardContent>
@@ -421,23 +287,8 @@ export default function MovrLanding() {
 
           <Card className="mintlify-card mintlify-card-hover rounded-xl overflow-hidden border-0">
             <CardContent className="p-8">
-              <div className="bg-black/30 rounded-lg p-6 mb-8 h-64 flex items-center justify-center">
-                <div className="grid grid-cols-3 gap-2 w-full">
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="bg-slate-800/80 h-16 rounded-md"></div>
-                  <div className="col-span-3">
-                    <div className="bg-teal-800/30 border border-teal-600/30 h-16 rounded-md flex items-center justify-center">
-                      <Button size="sm" className="bg-transparent border border-white/20 text-white text-xs">Add new file</Button>
-                    </div>
-                  </div>
-                  <div className="col-span-3 flex justify-center">
-                    <Button size="sm" className="bg-teal-600 text-white hover:bg-teal-700 text-xs">Publish</Button>
-                  </div>
-                </div>
+              <div className="rounded-lg mb-8 h-64 flex items-center justify-center bg-slate-900/40">
+                <img src="/pack.png" alt="Collaboration, reimagined for Web3" className="object-contain max-w-[90%] max-h-[90%] mx-auto my-auto rounded-lg shadow-lg" />
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Collaboration, reimagined for Web3</h3>
             </CardContent>
@@ -445,19 +296,8 @@ export default function MovrLanding() {
 
           <Card className="mintlify-card mintlify-card-hover rounded-xl overflow-hidden border-0">
             <CardContent className="p-8">
-              <div className="bg-black/30 rounded-lg p-6 mb-8 h-64 flex items-center justify-center">
-                <div className="flex flex-col w-full space-y-3">
-                  <div className="bg-slate-800/80 h-32 rounded-md relative">
-                    <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                      <Eye className="w-3 h-3" /> + 95% views
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="bg-slate-800/80 h-16 w-1/3 rounded-md"></div>
-                    <div className="bg-slate-800/80 h-16 w-1/3 rounded-md"></div>
-                    <div className="bg-slate-800/80 h-16 w-1/3 rounded-md"></div>
-                  </div>
-                </div>
+              <div className="rounded-lg mb-8 h-64 flex items-center justify-center bg-slate-900/40">
+                <img src="/upload.png" alt="Optimized for adoption" className="object-contain max-w-[90%] max-h-[90%] mx-auto my-auto rounded-lg shadow-lg" />
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Optimized for adoption</h3>
             </CardContent>
@@ -504,21 +344,12 @@ export default function MovrLanding() {
               
             </div>
             
-            <div className="relative">
-              <Card className="mintlify-card rounded-xl overflow-hidden border-0 transform rotate-2 hover:rotate-0 transition-transform duration-300">
-                <CardContent className="p-0">
-                  <div className="p-4 border rounded-3xl dark:bg-neutral-900 bg-neutral-100  border-neutral-200 dark:border-neutral-800 px-4">
-                    <Compare
-                      firstImage="https://assets.aceternity.com/code-problem.png"
-                      secondImage="https://assets.aceternity.com/code-solution.png"
-                      firstImageClassName="object-cover object-left-top"
-                      secondImageClassname="object-cover object-left-top"
-                      className="h-[250px] w-[200px] md:h-[500px] md:w-[500px]"
-                      slideMode="hover"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="relative flex items-center justify-center">
+              <img
+                src="/terminal.jpg"
+                alt="Terminal Preview"
+                className="-mt-20 rounded-2xl object-contain h-[400px] w-[500px] md:h-[600px] md:w-[900px]"
+              />
             </div>
           </div>
         </div>
@@ -561,37 +392,22 @@ export default function MovrLanding() {
                     <div className="flex items-center text-gray-500 text-xs mb-2">
                       <span>1</span>
                     </div>
-                    <div className="text-yellow-400">title: &quot;Configurations&quot;</div>
+                    <div className="text-yellow-400">movr init</div>
                     <div className="flex items-center text-gray-500 text-xs my-2">
                       <span>2</span>
                     </div>
-                    <div className="text-yellow-400">description: &quot;Sync your docs with a code</div>
+                    <div className="text-yellow-400">movr publish</div>
                     <div className="flex items-center text-gray-500 text-xs my-2">
                       <span>3</span>
                     </div>
-                    <div className="text-yellow-400">(GitHub and GitLab) repo&quot;</div>
+                    <div className="text-yellow-400">movr install</div>
                     <div className="flex items-center text-gray-500 text-xs my-2">
                       <span>4</span>
                     </div>
-                    <div className="text-yellow-400">---</div>
-                    <div className="flex items-center text-gray-500 text-xs my-2">
-                      <span>6</span>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-xs my-2">
-                      <span>7</span>
-                    </div>
-                    <div className="text-teal-400"># GitHub</div>
-                    <div className="flex items-center text-gray-500 text-xs my-2">
-                      <span>8</span>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-xs my-2">
-                      <span>9</span>
-                    </div>
-                    <div className="text-white">Movr integrates with the GitHub API,</div>
-                    <div className="flex items-center text-gray-500 text-xs my-2">
-                      <span>10</span>
-                    </div>
-                    <div className="text-white">enabling synchronization between your docs</div>
+                    <div className="text-yellow-400">movr endorse</div>
+                    
+                    <div className="text-white">Movr deploys and installs packages</div>
+                    <div className="text-white">faster than you can say &quot;Move&quot;</div>
                   </div>
                 </CardContent>
               </Card>
