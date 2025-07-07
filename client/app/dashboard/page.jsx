@@ -186,8 +186,13 @@ export default function Dashboard() {
           zIndex: 0
         }} />
         {/* Wallet Address Display - Top Right */}
-        <div className="absolute top-6 right-8 z-20">
+        <div className="absolute top-6 right-8 z-20 flex items-center gap-2">
           <WalletAddressButton account={account} disconnect={disconnect} connected={connected} />
+          <Link href="/ai">
+            <Button variant="secondary" className="gap-2">
+              AI Assistant
+            </Button>
+          </Link>
         </div>
         <div className="relative z-10 flex flex-col items-center md:items-start justify-center w-full max-w-5xl mx-auto pt-16 pb-12 text-center md:text-right">
           <span className="tracking-widest text-[#7b8a8e] text-xs md:text-sm mb-4 uppercase" style={{ letterSpacing: '0.2em' }}>MOVR</span>

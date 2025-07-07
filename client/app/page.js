@@ -119,6 +119,18 @@ export default function MovrLanding() {
     }
   };
 
+  // Add AI page link
+  const aiPageLink = (
+    <div className="w-full flex justify-end mb-4">
+      <Link href="/ai">
+        <Button variant="secondary" className="gap-2">
+          <MessageSquare className="w-4 h-4" />
+          AI Assistant
+        </Button>
+      </Link>
+    </div>
+  )
+
   return (
     <div className="min-h-screen mintlify-bg text-white">
       {/* Header */}

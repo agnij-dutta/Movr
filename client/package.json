@@ -11,6 +11,7 @@
   "dependencies": {
     "@aptos-labs/ts-sdk": "^1.39.0",
     "@aptos-labs/wallet-adapter-react": "^7.0.1",
+    "@google/genai": "^1.8.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@splinetool/react-spline": "^4.0.0",
     "@tabler/icons-react": "^3.34.0",
@@ -23,6 +24,7 @@
     "highlight.js": "^11.11.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.525.0",
+    "marked": "^16.0.0",
     "next": "15.3.4",
     "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^18.3.1",
