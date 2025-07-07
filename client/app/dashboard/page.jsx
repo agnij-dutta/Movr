@@ -414,47 +414,27 @@ export default function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pb-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <motion.div 
-                      className="bg-[#1A1A1A] p-4 rounded-lg"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-[#B0B0B0] text-sm">Total Packages</p>
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <span className="text-5xl font-extrabold text-[#d6ff4b]">{stats.totalPackages}</span>
-                        <span className="text-lg font-semibold text-[#b0b0b0]">Packages</span>
-                      </div>
-                    </motion.div>
-                    <motion.div 
-                      className="bg-[#1A1A1A] p-4 rounded-lg"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                    >
-                      <p className="text-[#B0B0B0] text-sm">Downloads</p>
-                      <p className="text-2xl font-bold text-white mt-1">{stats.totalDownloads}</p>
-                    </motion.div>
-                    <motion.div 
-                      className="bg-[#1A1A1A] p-4 rounded-lg"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.2 }}
-                    >
-                      <p className="text-[#B0B0B0] text-sm">Active</p>
-                      <p className="text-2xl font-bold text-white mt-1">{stats.totalEndorsements}</p>
-                    </motion.div>
-                    <motion.div 
-                      className="bg-[#1A1A1A] p-4 rounded-lg"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.3 }}
-                    >
-                      <p className="text-[#B0B0B0] text-sm">Updates</p>
-                      <p className="text-2xl font-bold text-white mt-1">{stats.totalTips}</p>
-                    </motion.div>
-                  </div>
+                  <motion.div 
+                    className="bg-[#1A1A1A] p-4 rounded-lg"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p className="text-[#B0B0B0] text-sm">Total Packages</p>
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="text-5xl font-extrabold text-[#d6ff4b]">{stats.totalPackages}</span>
+                      <span className="text-lg font-semibold text-[#b0b0b0]">Packages</span>
+                    </div>
+                  </motion.div>
+                  <motion.div 
+                    className="bg-[#1A1A1A] p-4 rounded-lg"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  >
+                    <p className="text-[#B0B0B0] text-sm">Active</p>
+                    <p className="text-2xl font-bold text-white mt-1">{stats.totalEndorsements}</p>
+                  </motion.div>
                 </CardContent>
               </div>
             </Card>
