@@ -2,9 +2,13 @@
 export const CONTRACT_ADDRESS = '0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34';
 export const MODULE_NAME = 'registry';
 
+// Fee constants (in octas)
+export const PLATFORM_PUBLISH_FEE = 100000000; // 1 APT
+export const PLATFORM_ENDORSER_FEE = 100000000; // 1 APT
+
 import { Aptos, AptosConfig, Network, AccountAddress, MoveString, U8 } from '@aptos-labs/ts-sdk';
 
-const config = new AptosConfig({ network: Network.DEVNET });
+const config = new AptosConfig({ network: Network.TESTNET });
 const aptos = new Aptos(config);
 
 // Connect wallet (browser extension)
@@ -174,6 +178,46 @@ export async function getEndorserInfo(address) {
     payload: {
       function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::get_endorser_info`,
       functionArguments: [address],
+    },
+  });
+  return res && res[0] ? res[0] : null;
+}
+
+// Get account balance in octas
+export async function getAccountBalance(address) {
+  const accountAddress = AccountAddress.from(address);
+  const balance = await aptos.getAccountAPTAmount({ accountAddress });
+  return balance;
+}
+
+// Check if account has sufficient balance for a fee
+export async function checkSufficientBalance(address, feeAmount) {
+  const balance = await getAccountBalance(address);
+  return balance >= feeAmount;
+}
+
+// Format octas to APT for display
+export function formatToAPT(octas) {
+  return (octas / 100000000).toFixed(8).replace(/\.?0+$/, '');
+}
+
+// Get total fees collected from the registry
+export async function getTotalFeesCollected() {
+  const res = await aptos.view({
+    payload: {
+      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::get_total_fees_collected`,
+      functionArguments: [],
+    },
+  });
+  return res && res[0] ? res[0] : 0;
+}
+
+// Get treasury address
+export async function getTreasuryAddress() {
+  const res = await aptos.view({
+    payload: {
+      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::get_treasury_address`,
+      functionArguments: [],
     },
   });
   return res && res[0] ? res[0] : null;

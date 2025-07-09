@@ -55,7 +55,7 @@ module apm_registry::test_registry {
         
         // Publish a package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -90,7 +90,7 @@ module apm_registry::test_registry {
         
         // Publish a template package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(b"template-package"),
             utf8(TEST_VERSION),
@@ -116,7 +116,7 @@ module apm_registry::test_registry {
         let tags = create_test_tags();
         
         // Publish version 1.0.0
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             package_name,
             utf8(b"1.0.0"),
@@ -127,7 +127,7 @@ module apm_registry::test_registry {
         );
         
         // Publish version 1.1.0
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             package_name,
             utf8(b"1.1.0"),
@@ -162,7 +162,7 @@ module apm_registry::test_registry {
         let tags = create_test_tags();
         
         // Publish package first time
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -173,7 +173,7 @@ module apm_registry::test_registry {
         );
         
         // Try to publish the same package again - should fail
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -196,7 +196,7 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Register endorser
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
         
         // Verify endorser registration
         let endorser_info = registry::get_endorser_info(signer::address_of(&endorser));
@@ -219,7 +219,7 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Try to register with insufficient stake - should fail
-        registry::register_endorser(&endorser, 1000); // Less than minimum stake
+        registry::register_endorser_test(&endorser, 1000); // Less than minimum stake
     }
 
     #[test]
@@ -231,10 +231,10 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Register endorser first time
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
         
         // Try to register the same endorser again - should fail
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
     }
 
     // ================================
@@ -302,12 +302,12 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Register endorser
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
         
         // Publish multiple packages
         let tags = create_test_tags();
         
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(b"package-1"),
             utf8(b"1.0.0"),
@@ -317,7 +317,7 @@ module apm_registry::test_registry {
             utf8(b"First package"),
         );
         
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(b"package-2"),
             utf8(b"2.0.0"),
@@ -359,7 +359,7 @@ module apm_registry::test_registry {
         
         // Publish a package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -424,11 +424,11 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Register endorser
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
         
         // Publish a package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -466,7 +466,7 @@ module apm_registry::test_registry {
         
         // Publish a package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),
@@ -493,11 +493,11 @@ module apm_registry::test_registry {
         registry::init_for_test(&admin);
         
         // Register endorser
-        registry::register_endorser(&endorser, TEST_STAKE_AMOUNT);
+        registry::register_endorser_test(&endorser, TEST_STAKE_AMOUNT);
         
         // Publish a package
         let tags = create_test_tags();
-        registry::publish_package(
+        registry::publish_package_test(
             &publisher,
             utf8(TEST_PACKAGE_NAME),
             utf8(TEST_VERSION),

@@ -33,11 +33,15 @@ import {
   EndorserRegisteredEvent,
 } from './types.js';
 
+// Fee constants (in octas)
+export const PLATFORM_PUBLISH_FEE = 100000000; // 1 APT
+export const PLATFORM_ENDORSER_FEE = 100000000; // 1 APT
+
 export class AptosBlockchainService {
   private aptos: Aptos;
   private config: AptosConfig;
 
-  constructor(network: Network = Network.DEVNET, nodeUrl?: string) {
+  constructor(network: Network = Network.TESTNET, nodeUrl?: string) {
     this.config = new AptosConfig({ 
       network,
       ...(nodeUrl && { fullnode: nodeUrl })
@@ -99,6 +103,42 @@ export class AptosBlockchainService {
         { address, amount }
       );
     }
+  }
+
+  /**
+   * Get account balance in APT (octas / 100000000)
+   */
+  async getAccountBalance(address: string): Promise<number> {
+    try {
+      const accountAddress = AccountAddress.from(address);
+      const balance = await this.aptos.getAccountAPTAmount({
+        accountAddress,
+      });
+      
+      logger.debug('Retrieved account balance', { address, balance });
+      return balance;
+    } catch (error) {
+      logger.error('Failed to get account balance', { address, error });
+      throw createBlockchainError(
+        `Failed to get account balance for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { address }
+      );
+    }
+  }
+
+  /**
+   * Check if account has sufficient balance for a fee
+   */
+  async checkSufficientBalance(address: string, feeAmount: number): Promise<boolean> {
+    const balance = await this.getAccountBalance(address);
+    return balance >= feeAmount;
+  }
+
+  /**
+   * Format octas to APT for display
+   */
+  formatToAPT(octas: number): string {
+    return (octas / 100000000).toFixed(8).replace(/\.?0+$/, '');
   }
 
   /**

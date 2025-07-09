@@ -21,4 +21,5 @@ export declare class PublishCommand {
     execute(options: PublishCommandOptions): Promise<void>;
     private extractPackageName;
     private isValidSemver;
+    private askForConfirmation;
 }

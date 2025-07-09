@@ -3,12 +3,13 @@ import path from 'path';
 import chalk from 'chalk';
 import { logger } from '../utils/logger.js';
 import { createFileSystemError } from '../utils/errors.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
+import { AptosBlockchainService, PLATFORM_PUBLISH_FEE } from '../services/blockchain.js';
 import { PinataIPFSService } from '../services/ipfs.js';
 import { ConfigService } from '../services/config.js';
 import { Network } from '@aptos-labs/ts-sdk';
 import { PACKAGE_TYPE_LIBRARY } from '../services/types.js';
 import { Command } from 'commander';
+import * as readline from 'readline';
 
 export interface PublishCommandOptions {
   packagePath: string;
@@ -95,7 +96,7 @@ export class PublishCommand {
       }
 
       // Create temporary directory and copy package contents
-      const tempDir = await fs.mkdtemp('apm_publish_');
+      const tempDir = await fs.mkdtemp(path.join('/tmp', 'apm_publish_'));
       console.log('DEBUG: Created tempDir:', tempDir);
       await fs.copy(packageDir, tempDir);
       console.log('DEBUG: Copied package to tempDir');
@@ -117,6 +118,33 @@ export class PublishCommand {
       // Create account from private key using blockchain service
       const account = this.blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
       console.log('DEBUG: Created account from private key:', account.accountAddress.toString());
+
+      // Check balance and warn about fee
+      const balance = await this.blockchain.getAccountBalance(account.accountAddress.toString());
+      const feeInAPT = this.blockchain.formatToAPT(PLATFORM_PUBLISH_FEE);
+      const balanceInAPT = this.blockchain.formatToAPT(balance);
+      
+      console.log(chalk.yellow(`\n📋 Platform Fee Information:`));
+      console.log(chalk.yellow(`   Publishing fee: ${feeInAPT} APT`));
+      console.log(chalk.yellow(`   Your balance: ${balanceInAPT} APT`));
+      
+      if (balance < PLATFORM_PUBLISH_FEE) {
+        console.log(chalk.red(`\n❌ Insufficient balance! You need at least ${feeInAPT} APT to publish.`));
+        if (this.config.getConfig().currentNetwork !== 'mainnet') {
+          console.log(chalk.gray(`   💡 Fund your account: aptos account fund-with-faucet --account ${account.accountAddress}`));
+        }
+        return;
+      }
+
+      // Ask for confirmation
+      const confirmed = await this.askForConfirmation(
+        `\n💰 Publishing will cost ${feeInAPT} APT. Continue? (y/N): `
+      );
+      
+      if (!confirmed) {
+        console.log(chalk.gray('Publishing cancelled.'));
+        return;
+      }
 
       // Parse tags
       const tags = options.tags ? options.tags.split(',').map(t => t.trim()) : [];
@@ -183,5 +211,19 @@ export class PublishCommand {
   private isValidSemver(version: string): boolean {
     const parts = version.split('.');
     return parts.length === 3 && parts.every(part => /^\d+$/.test(part));
+  }
+
+  private async askForConfirmation(question: string): Promise<boolean> {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        rl.close();
+        resolve(answer.toLowerCase().trim() === 'y' || answer.toLowerCase().trim() === 'yes');
+      });
+    });
   }
 } 

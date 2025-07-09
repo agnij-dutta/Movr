@@ -1,9 +1,10 @@
 import chalk from 'chalk';
 import { logger } from '../utils/logger.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
+import { AptosBlockchainService, PLATFORM_ENDORSER_FEE } from '../services/blockchain.js';
 import { ConfigService } from '../services/config.js';
 import { Network } from '@aptos-labs/ts-sdk';
 import { Command } from 'commander';
+import * as readline from 'readline';
 
 export interface EndorseCommandOptions {
   name: string;
@@ -62,6 +63,39 @@ export class EndorseCommand {
         return;
       }
       const account = this.blockchain.createAccountFromPrivateKey(wallet.privateKey);
+      
+      // Check balance and warn about fees
+      const balance = await this.blockchain.getAccountBalance(account.accountAddress.toString());
+      const totalCost = PLATFORM_ENDORSER_FEE + (stakeAmount * 100000000); // Convert stake to octas
+      const feeInAPT = this.blockchain.formatToAPT(PLATFORM_ENDORSER_FEE);
+      const stakeInAPT = this.blockchain.formatToAPT(stakeAmount * 100000000);
+      const totalInAPT = this.blockchain.formatToAPT(totalCost);
+      const balanceInAPT = this.blockchain.formatToAPT(balance);
+      
+      console.log(chalk.yellow(`\n📋 Endorser Registration Fee Information:`));
+      console.log(chalk.yellow(`   Registration fee: ${feeInAPT} APT`));
+      console.log(chalk.yellow(`   Stake amount: ${stakeInAPT} APT`));
+      console.log(chalk.yellow(`   Total cost: ${totalInAPT} APT`));
+      console.log(chalk.yellow(`   Your balance: ${balanceInAPT} APT`));
+      
+      if (balance < totalCost) {
+        console.log(chalk.red(`\n❌ Insufficient balance! You need at least ${totalInAPT} APT to register as endorser.`));
+        if (this.config.getConfig().currentNetwork !== 'mainnet') {
+          console.log(chalk.gray(`   💡 Fund your account: aptos account fund-with-faucet --account ${account.accountAddress}`));
+        }
+        return;
+      }
+
+      // Ask for confirmation
+      const confirmed = await this.askForConfirmation(
+        `\n💰 Endorser registration will cost ${totalInAPT} APT (${feeInAPT} fee + ${stakeInAPT} stake). Continue? (y/N): `
+      );
+      
+      if (!confirmed) {
+        console.log(chalk.gray('Endorser registration cancelled.'));
+        return;
+      }
+      
       const result = await this.blockchain.registerEndorser(account, Number(stakeAmount));
       if (result.success) {
         console.log('✓ Registered as endorser successfully!');
@@ -133,6 +167,20 @@ export class EndorseCommand {
         console.log(chalk.red(error.message));
       }
     }
+  }
+
+  private async askForConfirmation(question: string): Promise<boolean> {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        rl.close();
+        resolve(answer.toLowerCase().trim() === 'y' || answer.toLowerCase().trim() === 'yes');
+      });
+    });
   }
 }
 

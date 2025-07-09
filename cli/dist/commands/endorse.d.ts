@@ -15,4 +15,5 @@ export declare class EndorseCommand {
     constructor(configService: ConfigService, parentProgram: Command);
     private registerEndorserSubcommand;
     execute(options: EndorseCommandOptions): Promise<void>;
+    private askForConfirmation;
 }

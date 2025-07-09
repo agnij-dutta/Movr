@@ -290,7 +290,7 @@ export class ConfigService {
   private getDefaultConfig(): APMConfig {
     return {
       version: '1.0.0',
-      currentNetwork: 'devnet',
+      currentNetwork: 'testnet',
       networks: {
         devnet: {
           name: 'devnet',

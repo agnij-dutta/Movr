@@ -2,10 +2,13 @@ import { Aptos, AptosConfig, Network, Account, AccountAddress, Ed25519PrivateKey
 import { logger } from '../utils/logger.js';
 import { createBlockchainError, createConfigError } from '../utils/errors.js';
 import { APM_CONTRACT_ADDRESS, APM_MODULE_NAME, } from './types.js';
+// Fee constants (in octas)
+export const PLATFORM_PUBLISH_FEE = 100000000; // 1 APT
+export const PLATFORM_ENDORSER_FEE = 100000000; // 1 APT
 export class AptosBlockchainService {
     aptos;
     config;
-    constructor(network = Network.DEVNET, nodeUrl) {
+    constructor(network = Network.TESTNET, nodeUrl) {
         this.config = new AptosConfig({
             network,
             ...(nodeUrl && { fullnode: nodeUrl })
@@ -55,6 +58,36 @@ export class AptosBlockchainService {
             logger.error('Failed to fund account', { address, amount, error });
             throw createBlockchainError(`Failed to fund account ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address, amount });
         }
+    }
+    /**
+     * Get account balance in APT (octas / 100000000)
+     */
+    async getAccountBalance(address) {
+        try {
+            const accountAddress = AccountAddress.from(address);
+            const balance = await this.aptos.getAccountAPTAmount({
+                accountAddress,
+            });
+            logger.debug('Retrieved account balance', { address, balance });
+            return balance;
+        }
+        catch (error) {
+            logger.error('Failed to get account balance', { address, error });
+            throw createBlockchainError(`Failed to get account balance for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
+        }
+    }
+    /**
+     * Check if account has sufficient balance for a fee
+     */
+    async checkSufficientBalance(address, feeAmount) {
+        const balance = await this.getAccountBalance(address);
+        return balance >= feeAmount;
+    }
+    /**
+     * Format octas to APT for display
+     */
+    formatToAPT(octas) {
+        return (octas / 100000000).toFixed(8).replace(/\.?0+$/, '');
     }
     /**
      * Publish a package to the registry

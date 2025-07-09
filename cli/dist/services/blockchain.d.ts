@@ -1,5 +1,7 @@
 import { Network, Account } from '@aptos-labs/ts-sdk';
 import { PackageMetadata, EndorserInfo, RegistryStats, TransactionResult, PackagePublishedEvent, PackageEndorsedEvent, PackageTippedEvent, EndorserRegisteredEvent } from './types.js';
+export declare const PLATFORM_PUBLISH_FEE = 100000000;
+export declare const PLATFORM_ENDORSER_FEE = 100000000;
 export declare class AptosBlockchainService {
     private aptos;
     private config;
@@ -12,6 +14,18 @@ export declare class AptosBlockchainService {
      * Fund account with APT (testnet/devnet only)
      */
     fundAccount(address: string, amount?: number): Promise<void>;
+    /**
+     * Get account balance in APT (octas / 100000000)
+     */
+    getAccountBalance(address: string): Promise<number>;
+    /**
+     * Check if account has sufficient balance for a fee
+     */
+    checkSufficientBalance(address: string, feeAmount: number): Promise<boolean>;
+    /**
+     * Format octas to APT for display
+     */
+    formatToAPT(octas: number): string;
     /**
      * Publish a package to the registry
      */

@@ -1,12 +1,19 @@
 {
-  "network": "devnet",
+  "network": "testnet",
   "contract_address": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34",
   "module_name": "registry",
-  "deployment_transaction": "0x84313cb7b659138d3b4300de09742742df8a3c607cf8cce73d54f0b3feaadb9e",
-  "deployed_at": "2025-01-03T06:22:21.387509Z",
-  "gas_used": 5982,
+  "deployment_transaction": "0x3566d0f479feeba4dce0e6ebc5472c7be6a98b2c7acaf51f7678d8b4fb761dc0",
+  "deployed_at": "2025-01-08T21:50:56.567443Z",
+  "gas_used": 5725,
+  "initialization_transaction": "0x30a4d57ae8d8aa54148e9a766a686c9f04fa222ac91e67f2c61b69479ed91ba8",
+  "treasury_address": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34",
+  "fees": {
+    "publish_package": "100000000",
+    "register_endorser": "100000000",
+    "description": "All fees are in octas (1 APT = 100000000 octas)"
+  },
   "functions": {
-    "initialize": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::initialize",
+    "initialize": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::initialize_registry",
     "publish_package": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::publish_package",
     "endorse_package": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::endorse_package",
     "register_endorser": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::register_endorser",
@@ -17,12 +24,17 @@
     "get_package_versions": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_package_versions",
     "get_endorser_info": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_endorser_info",
     "search_packages": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::search_packages",
-    "get_registry_stats": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_registry_stats"
+    "get_total_packages": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_total_packages",
+    "get_total_endorsers": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_total_endorsers",
+    "get_total_fees_collected": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_total_fees_collected",
+    "get_treasury_address": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::get_treasury_address",
+    "package_exists": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::package_exists"
   },
   "events": {
     "package_published": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackagePublishedEvent",
     "package_endorsed": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackageEndorsedEvent",
     "endorser_registered": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::EndorserRegisteredEvent",
-    "package_tipped": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackageTippedEvent"
+    "package_tipped": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::PackageTippedEvent",
+    "fee_collected": "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34::registry::FeeCollectedEvent"
   }
 } 

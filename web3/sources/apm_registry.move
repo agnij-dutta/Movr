@@ -7,6 +7,8 @@ module apm_registry::registry {
     use aptos_framework::event::{Self, EventHandle};
     use aptos_framework::account::{Self, SignerCapability};
     use aptos_std::table::{Self, Table};
+    use aptos_framework::coin;
+    use aptos_framework::aptos_coin::AptosCoin;
 
     // ================================
     // Error Constants
@@ -41,6 +43,9 @@ module apm_registry::registry {
     
     /// Invalid package type
     const E_INVALID_PACKAGE_TYPE: u64 = 10;
+    
+    /// Insufficient funds for fee payment
+    const E_INSUFFICIENT_FUNDS: u64 = 11;
 
     // ================================
     // Constants
@@ -58,8 +63,11 @@ module apm_registry::registry {
     /// Minimum staking amount for endorsers (in APT units)
     const MIN_ENDORSER_STAKE: u64 = 1000000; // 1 APT
     
-    /// Platform fee for publishing (in APT units)
-    const PLATFORM_FEE: u64 = 10000; // 0.01 APT
+    /// Platform fee for publishing (in APT units) - 1 APT
+    const PLATFORM_PUBLISH_FEE: u64 = 100000000; // 1 APT in octas
+    
+    /// Platform fee for endorser registration (in APT units) - 1 APT  
+    const PLATFORM_ENDORSER_FEE: u64 = 100000000; // 1 APT in octas
     
     /// Package type: Library
     const PACKAGE_TYPE_LIBRARY: u8 = 0;
@@ -129,6 +137,10 @@ module apm_registry::registry {
         total_endorsers: u64,
         /// Registry admin address
         admin: address,
+        /// Treasury address for fee collection
+        treasury: address,
+        /// Total fees collected
+        total_fees_collected: u64,
         /// Signer capability for backward compatibility
         signer_cap: SignerCapability, // Unused in production, present for backward compatibility
         /// Event handles for emissions
@@ -136,6 +148,7 @@ module apm_registry::registry {
         package_endorsed_events: EventHandle<PackageEndorsedEvent>,
         package_tipped_events: EventHandle<PackageTippedEvent>,
         endorser_registered_events: EventHandle<EndorserRegisteredEvent>,
+        fee_collected_events: EventHandle<FeeCollectedEvent>,
     }
 
     // ================================
@@ -172,6 +185,14 @@ module apm_registry::registry {
     struct EndorserRegisteredEvent has drop, store {
         endorser: address,
         stake_amount: u64,
+        timestamp: u64,
+    }
+
+    /// Event emitted when a platform fee is collected
+    struct FeeCollectedEvent has drop, store {
+        payer: address,
+        amount: u64,
+        fee_type: String, // "publish" or "endorser_registration"
         timestamp: u64,
     }
 
@@ -222,7 +243,7 @@ module apm_registry::registry {
     // ================================
 
     /// Initialize the package registry at the module address (idempotent)
-    public entry fun initialize_registry(admin: &signer) {
+    public entry fun initialize_registry(admin: &signer, treasury: address) {
         if (!exists<PackageRegistry>(@apm_registry)) {
         let admin_addr = signer::address_of(admin);
             // Create a dummy resource account and get its signer_cap for backward compatibility
@@ -235,11 +256,14 @@ module apm_registry::registry {
             total_packages: 0,
             total_endorsers: 0,
             admin: admin_addr,
+            treasury,
+            total_fees_collected: 0,
                 signer_cap: dummy_cap,
                 package_published_events: account::new_event_handle<PackagePublishedEvent>(admin),
                 package_endorsed_events: account::new_event_handle<PackageEndorsedEvent>(admin),
                 package_tipped_events: account::new_event_handle<PackageTippedEvent>(admin),
                 endorser_registered_events: account::new_event_handle<EndorserRegisteredEvent>(admin),
+                fee_collected_events: account::new_event_handle<FeeCollectedEvent>(admin),
             };
             move_to<PackageRegistry>(admin, registry);
         }
@@ -304,6 +328,21 @@ module apm_registry::registry {
         let publisher_addr = signer::address_of(publisher);
         let registry = borrow_global_mut<PackageRegistry>(@apm_registry);
         
+        // Collect platform fee
+        let balance = coin::balance<AptosCoin>(publisher_addr);
+        assert!(balance >= PLATFORM_PUBLISH_FEE, E_INSUFFICIENT_FUNDS);
+        
+        coin::transfer<AptosCoin>(publisher, registry.treasury, PLATFORM_PUBLISH_FEE);
+        registry.total_fees_collected = registry.total_fees_collected + PLATFORM_PUBLISH_FEE;
+        
+        // Emit fee collection event
+        event::emit_event(&mut registry.fee_collected_events, FeeCollectedEvent {
+            payer: publisher_addr,
+            amount: PLATFORM_PUBLISH_FEE,
+            fee_type: string::utf8(b"publish"),
+            timestamp: timestamp::now_seconds(),
+        });
+        
         // Validate inputs
         assert!(validate_package_name(&name), E_INVALID_PACKAGE_NAME);
         assert!(validate_version(&version), E_INVALID_VERSION);
@@ -366,14 +405,29 @@ module apm_registry::registry {
         let endorser_addr = signer::address_of(endorser);
         let registry = borrow_global_mut<PackageRegistry>(@apm_registry);
         
+        // Collect platform fee
+        let balance = coin::balance<AptosCoin>(endorser_addr);
+        assert!(balance >= PLATFORM_ENDORSER_FEE + stake_amount, E_INSUFFICIENT_FUNDS);
+        
+        coin::transfer<AptosCoin>(endorser, registry.treasury, PLATFORM_ENDORSER_FEE);
+        registry.total_fees_collected = registry.total_fees_collected + PLATFORM_ENDORSER_FEE;
+        
+        // Emit fee collection event
+        event::emit_event(&mut registry.fee_collected_events, FeeCollectedEvent {
+            payer: endorser_addr,
+            amount: PLATFORM_ENDORSER_FEE,
+            fee_type: string::utf8(b"endorser_registration"),
+            timestamp: timestamp::now_seconds(),
+        });
+        
         // Validate minimum stake
         assert!(stake_amount >= MIN_ENDORSER_STAKE, E_INSUFFICIENT_STAKE);
         
         // Check if already registered
         assert!(!table::contains(&registry.endorsers, endorser_addr), E_ALREADY_ENDORSED);
         
-        // TODO: Transfer stake amount (would integrate with APT coin transfer)
-        // For now, we'll just record the stake amount
+        // Transfer stake amount - this is in addition to the platform fee
+        coin::transfer<AptosCoin>(endorser, registry.treasury, stake_amount);
         
         // Create endorser info
         let endorser_info = EndorserInfo {
@@ -449,6 +503,20 @@ module apm_registry::registry {
         let registry = borrow_global<PackageRegistry>(@apm_registry);
         let pkg_id = package_id(&name, &version);
         table::contains(&registry.packages, pkg_id)
+    }
+
+    #[view]
+    /// Get total fees collected
+    public fun get_total_fees_collected(): u64 acquires PackageRegistry {
+        let registry = borrow_global<PackageRegistry>(@apm_registry);
+        registry.total_fees_collected
+    }
+
+    #[view]
+    /// Get treasury address
+    public fun get_treasury_address(): address acquires PackageRegistry {
+        let registry = borrow_global<PackageRegistry>(@apm_registry);
+        registry.treasury
     }
 
     /// Endorse a package (only registered endorsers)
@@ -573,11 +641,14 @@ module apm_registry::registry {
             total_packages: 0,
             total_endorsers: 0,
             admin: admin_addr,
+            treasury: admin_addr, // Use admin as treasury for testing
+            total_fees_collected: 0,
             signer_cap,
             package_published_events: account::new_event_handle<PackagePublishedEvent>(&resource_signer),
             package_endorsed_events: account::new_event_handle<PackageEndorsedEvent>(&resource_signer),
             package_tipped_events: account::new_event_handle<PackageTippedEvent>(&resource_signer),
             endorser_registered_events: account::new_event_handle<EndorserRegisteredEvent>(&resource_signer),
+            fee_collected_events: account::new_event_handle<FeeCollectedEvent>(&resource_signer),
         };
 
         // Move registry to the framework signer address for testing
@@ -654,5 +725,114 @@ module apm_registry::registry {
     /// Get package endorsements for testing
     public fun get_package_endorsements(package: &PackageMetadata): vector<address> {
         package.endorsements
+    }
+
+    #[test_only]
+    /// Test-only publish function that skips fee collection
+    public entry fun publish_package_test(
+        publisher: &signer,
+        name: String,
+        version: String,
+        ipfs_hash: String,
+        package_type: u8,
+        tags: vector<String>,
+        description: String,
+    ) acquires PackageRegistry {
+        let publisher_addr = signer::address_of(publisher);
+        let registry = borrow_global_mut<PackageRegistry>(@apm_registry);
+        
+        // Skip fee collection for testing
+        
+        // Validate inputs
+        assert!(validate_package_name(&name), E_INVALID_PACKAGE_NAME);
+        assert!(validate_version(&version), E_INVALID_VERSION);
+        assert!(validate_ipfs_hash(&ipfs_hash), E_INVALID_IPFS_HASH);
+        assert!(validate_package_type(package_type), E_INVALID_PACKAGE_TYPE);
+        
+        // Generate package identifier
+        let pkg_id = package_id(&name, &version);
+        
+        // Check if package already exists
+        assert!(!table::contains(&registry.packages, pkg_id), E_PACKAGE_ALREADY_EXISTS);
+        
+        // Create package metadata
+        let package_metadata = PackageMetadata {
+            name: name,
+            version: version,
+            publisher: publisher_addr,
+            ipfs_hash,
+            endorsements: vector::empty(),
+            timestamp: timestamp::now_seconds(),
+            package_type,
+            download_count: 0,
+            total_tips: 0,
+            tags,
+            description,
+        };
+        
+        // Add to registry
+        table::add(&mut registry.packages, pkg_id, package_metadata);
+        vector::push_back(&mut registry.package_list, pkg_id);
+        
+        // Update package versions tracking
+        if (table::contains(&registry.package_versions, name)) {
+            let versions = table::borrow_mut(&mut registry.package_versions, name);
+            vector::push_back(versions, version);
+        } else {
+            let versions = vector::empty();
+            vector::push_back(&mut versions, version);
+            table::add(&mut registry.package_versions, name, versions);
+        };
+        
+        // Update stats
+        registry.total_packages = registry.total_packages + 1;
+        
+        // Emit event
+        event::emit_event(&mut registry.package_published_events, PackagePublishedEvent {
+            name: package_metadata.name,
+            version: package_metadata.version,
+            publisher: publisher_addr,
+            package_type,
+            timestamp: package_metadata.timestamp,
+        });
+    }
+
+    #[test_only]
+    /// Test-only endorser registration that skips fee collection
+    public entry fun register_endorser_test(
+        endorser: &signer,
+        stake_amount: u64,
+    ) acquires PackageRegistry {
+        let endorser_addr = signer::address_of(endorser);
+        let registry = borrow_global_mut<PackageRegistry>(@apm_registry);
+        
+        // Skip fee collection for testing
+        
+        // Validate minimum stake
+        assert!(stake_amount >= MIN_ENDORSER_STAKE, E_INSUFFICIENT_STAKE);
+        
+        // Check if already registered
+        assert!(!table::contains(&registry.endorsers, endorser_addr), E_ALREADY_ENDORSED);
+        
+        // Create endorser info (skip actual staking for testing)
+        let endorser_info = EndorserInfo {
+            endorser: endorser_addr,
+            stake_amount,
+            is_active: true,
+            reputation: 50, // Start with neutral reputation
+            packages_endorsed: 0,
+            registered_at: timestamp::now_seconds(),
+        };
+        
+        // Add to registry
+        table::add(&mut registry.endorsers, endorser_addr, endorser_info);
+        registry.total_endorsers = registry.total_endorsers + 1;
+        
+        // Emit event
+        event::emit_event(&mut registry.endorser_registered_events, EndorserRegisteredEvent {
+            endorser: endorser_addr,
+            stake_amount,
+            timestamp: timestamp::now_seconds(),
+        });
     }
 } 
