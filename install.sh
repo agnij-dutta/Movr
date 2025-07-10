@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-# Always use v1.01 release
-VERSION="v1.01"
+# Always use v1.2.0 release
+VERSION="v1.2.0"
 
 GITHUB_REPO="agnij-dutta/Movr"
 
@@ -27,9 +27,9 @@ detect_platform() {
 
 get_download_url() {
   case "$PLATFORM" in
-    linux)  echo "https://github.com/agnij-dutta/Movr/releases/download/v1.01/movr-linux";;
-    macos)  echo "https://github.com/agnij-dutta/Movr/releases/download/v1.01/movr-macos";;
-    win)    echo "https://github.com/agnij-dutta/Movr/releases/download/v1.01/movr-win.exe";;
+    linux)  echo "https://github.com/agnij-dutta/Movr/releases/download/$VERSION/movr-linux";;
+    macos)  echo "https://github.com/agnij-dutta/Movr/releases/download/$VERSION/movr-macos";;
+    win)    echo "https://github.com/agnij-dutta/Movr/releases/download/$VERSION/movr-win.exe";;
     *)      echo "Unsupported platform: $PLATFORM"; exit 1;;
   esac
 }
