@@ -1,9 +1,9 @@
 import chalk from 'chalk';
-import { logger } from '../utils/logger.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
-import { ConfigService } from '../services/config.js';
+import { logger } from '../utils/logger';
+import { AptosBlockchainService } from '../services/blockchain';
+import { ConfigService } from '../services/config';
 import { Network } from '@aptos-labs/ts-sdk';
-import { PACKAGE_TYPE_LIBRARY, PACKAGE_TYPE_TEMPLATE, PackageMetadata } from '../services/types.js';
+import { PACKAGE_TYPE_LIBRARY, PACKAGE_TYPE_TEMPLATE, PackageMetadata } from '../services/types';
 import { Command } from 'commander';
 import Fuse from 'fuse.js';
 
@@ -55,7 +55,7 @@ export class SearchCommand {
           keys: ['name', 'description', 'tags'],
           threshold: 0.4, // Adjust for fuzziness
         });
-        filteredPackages = fuse.search(options.query).map(result => result.item);
+        filteredPackages = fuse.search(options.query).map((result: any) => result.item);
       }
 
       // Filter results based on options

@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
-import { logger } from '../utils/logger.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
-import { PinataIPFSService } from '../services/ipfs.js';
-import { ConfigService } from '../services/config.js';
+import { logger } from '../utils/logger';
+import { AptosBlockchainService } from '../services/blockchain';
+import { PinataIPFSService } from '../services/ipfs';
+import { ConfigService } from '../services/config';
 import { Network } from '@aptos-labs/ts-sdk';
 import { Command } from 'commander';
 

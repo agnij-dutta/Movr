@@ -16,8 +16,8 @@ import {
   Serializer,
   U8,
 } from '@aptos-labs/ts-sdk';
-import { logger } from '../utils/logger.js';
-import { createBlockchainError, createConfigError } from '../utils/errors.js';
+import { logger } from '../utils/logger';
+import { createBlockchainError, createConfigError } from '../utils/errors';
 import {
   APM_CONTRACT_ADDRESS,
   APM_MODULE_NAME,
@@ -31,7 +31,7 @@ import {
   PackageEndorsedEvent,
   PackageTippedEvent,
   EndorserRegisteredEvent,
-} from './types.js';
+} from './types';
 
 // Fee constants (in octas)
 export const PLATFORM_PUBLISH_FEE = 100000000; // 1 APT

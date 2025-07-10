@@ -1,22 +1,23 @@
-import { Aptos, AptosConfig, Network, Account, AccountAddress, Ed25519PrivateKey, U64, U128, Bool, MoveString, MoveVector, U8, } from '@aptos-labs/ts-sdk';
-import { logger } from '../utils/logger.js';
-import { createBlockchainError, createConfigError } from '../utils/errors.js';
-import { APM_CONTRACT_ADDRESS, APM_MODULE_NAME, } from './types.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AptosBlockchainService = exports.PLATFORM_ENDORSER_FEE = exports.PLATFORM_PUBLISH_FEE = void 0;
+const ts_sdk_1 = require("@aptos-labs/ts-sdk");
+const logger_1 = require("../utils/logger");
+const errors_1 = require("../utils/errors");
+const types_1 = require("./types");
 // Fee constants (in octas)
-export const PLATFORM_PUBLISH_FEE = 100000000; // 1 APT
-export const PLATFORM_ENDORSER_FEE = 100000000; // 1 APT
-export class AptosBlockchainService {
-    aptos;
-    config;
-    constructor(network = Network.TESTNET, nodeUrl) {
-        this.config = new AptosConfig({
+exports.PLATFORM_PUBLISH_FEE = 100000000; // 1 APT
+exports.PLATFORM_ENDORSER_FEE = 100000000; // 1 APT
+class AptosBlockchainService {
+    constructor(network = ts_sdk_1.Network.TESTNET, nodeUrl) {
+        this.config = new ts_sdk_1.AptosConfig({
             network,
             ...(nodeUrl && { fullnode: nodeUrl })
         });
-        this.aptos = new Aptos(this.config);
-        logger.info('Blockchain service initialized', {
+        this.aptos = new ts_sdk_1.Aptos(this.config);
+        logger_1.logger.info('Blockchain service initialized', {
             network,
-            contractAddress: APM_CONTRACT_ADDRESS,
+            contractAddress: types_1.APM_CONTRACT_ADDRESS,
         });
     }
     /**
@@ -24,39 +25,39 @@ export class AptosBlockchainService {
      */
     async getAccountInfo(address) {
         try {
-            const accountAddress = AccountAddress.from(address);
+            const accountAddress = ts_sdk_1.AccountAddress.from(address);
             const accountInfo = await this.aptos.getAccountInfo({
                 accountAddress,
             });
-            logger.debug('Retrieved account info', {
+            logger_1.logger.debug('Retrieved account info', {
                 address,
                 sequenceNumber: accountInfo.sequence_number,
             });
             return accountInfo;
         }
         catch (error) {
-            logger.error('Failed to get account info', { address, error });
-            throw createBlockchainError(`Failed to get account info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
+            logger_1.logger.error('Failed to get account info', { address, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get account info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
         }
     }
     /**
      * Fund account with APT (testnet/devnet only)
      */
-    async fundAccount(address, amount = 100_000_000) {
+    async fundAccount(address, amount = 100000000) {
         try {
-            if (this.config.network === Network.MAINNET) {
-                throw createConfigError('Cannot fund account on mainnet');
+            if (this.config.network === ts_sdk_1.Network.MAINNET) {
+                throw (0, errors_1.createConfigError)('Cannot fund account on mainnet');
             }
-            const accountAddress = AccountAddress.from(address);
+            const accountAddress = ts_sdk_1.AccountAddress.from(address);
             await this.aptos.fundAccount({
                 accountAddress,
                 amount,
             });
-            logger.info('Account funded successfully', { address, amount });
+            logger_1.logger.info('Account funded successfully', { address, amount });
         }
         catch (error) {
-            logger.error('Failed to fund account', { address, amount, error });
-            throw createBlockchainError(`Failed to fund account ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address, amount });
+            logger_1.logger.error('Failed to fund account', { address, amount, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to fund account ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address, amount });
         }
     }
     /**
@@ -64,16 +65,16 @@ export class AptosBlockchainService {
      */
     async getAccountBalance(address) {
         try {
-            const accountAddress = AccountAddress.from(address);
+            const accountAddress = ts_sdk_1.AccountAddress.from(address);
             const balance = await this.aptos.getAccountAPTAmount({
                 accountAddress,
             });
-            logger.debug('Retrieved account balance', { address, balance });
+            logger_1.logger.debug('Retrieved account balance', { address, balance });
             return balance;
         }
         catch (error) {
-            logger.error('Failed to get account balance', { address, error });
-            throw createBlockchainError(`Failed to get account balance for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
+            logger_1.logger.error('Failed to get account balance', { address, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get account balance for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
         }
     }
     /**
@@ -94,26 +95,26 @@ export class AptosBlockchainService {
      */
     async publishPackage(signer, metadata) {
         try {
-            logger.info('Publishing package to registry', {
+            logger_1.logger.info('Publishing package to registry', {
                 packageName: metadata.name,
                 version: metadata.version,
                 ipfsHash: metadata.ipfsHash,
             });
             // Ensure tags is always an array of MoveString
-            const tags = Array.isArray(metadata.tags) ? metadata.tags.map(tag => new MoveString(String(tag))) : [];
+            const tags = Array.isArray(metadata.tags) ? metadata.tags.map(tag => new ts_sdk_1.MoveString(String(tag))) : [];
             // Build function arguments in the exact order as the Move ABI, wrapping all strings in MoveString
             const functionArguments = [
-                new MoveString(metadata.name),
-                new MoveString(metadata.version),
-                new MoveString(metadata.ipfsHash),
-                new U8(0), // 0 = library, 1 = template
+                new ts_sdk_1.MoveString(metadata.name),
+                new ts_sdk_1.MoveString(metadata.version),
+                new ts_sdk_1.MoveString(metadata.ipfsHash),
+                new ts_sdk_1.U8(0), // 0 = library, 1 = template
                 tags,
-                new MoveString(metadata.description || ''),
+                new ts_sdk_1.MoveString(metadata.description || ''),
             ];
             const transaction = await this.aptos.transaction.build.simple({
                 sender: signer.accountAddress,
                 data: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::publish_package`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::publish_package`,
                     functionArguments,
                 },
             });
@@ -125,11 +126,11 @@ export class AptosBlockchainService {
                 transaction,
                 senderAuthenticator,
             });
-            logger.info('Submitted transaction', { hash: submittedTx.hash });
+            logger_1.logger.info('Submitted transaction', { hash: submittedTx.hash });
             const txResult = await this.aptos.waitForTransaction({
                 transactionHash: submittedTx.hash,
             });
-            logger.info('Transaction result', {
+            logger_1.logger.info('Transaction result', {
                 transactionHash: submittedTx.hash,
                 success: txResult.success,
                 vmStatus: txResult.vm_status,
@@ -141,11 +142,11 @@ export class AptosBlockchainService {
             };
         }
         catch (error) {
-            logger.error('Failed to publish package', {
+            logger_1.logger.error('Failed to publish package', {
                 packageName: metadata.name,
                 error,
             });
-            throw createBlockchainError(`Failed to publish package ${metadata.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { packageName: metadata.name });
+            throw (0, errors_1.createBlockchainError)(`Failed to publish package ${metadata.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { packageName: metadata.name });
         }
     }
     /**
@@ -153,39 +154,39 @@ export class AptosBlockchainService {
      */
     async getPackageMetadata(name, version) {
         try {
-            logger.debug('Getting package metadata', { name, version });
+            logger_1.logger.debug('Getting package metadata', { name, version });
             let actualVersion = version;
             if (!actualVersion) {
                 // Fetch latest version if not provided
                 const versions = await this.getPackageVersions(name);
                 if (!versions || versions.length === 0) {
-                    logger.error('No versions found for package', { name });
+                    logger_1.logger.error('No versions found for package', { name });
                     return null;
                 }
                 actualVersion = versions[versions.length - 1]; // Use the latest version
-                logger.debug('No version specified, using latest', { name, actualVersion });
+                logger_1.logger.debug('No version specified, using latest', { name, actualVersion });
             }
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_package_metadata`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::get_package_metadata`,
                     functionArguments: [name, actualVersion],
                 },
             });
             if (!response || response.length === 0) {
-                logger.error('No metadata found for package', { name, version: actualVersion });
+                logger_1.logger.error('No metadata found for package', { name, version: actualVersion });
                 return null;
             }
             // The response is a struct representing the package metadata
             const metadata = response[0];
             if (!metadata || typeof metadata !== 'object') {
-                logger.error('Invalid metadata response', { name, version: actualVersion });
+                logger_1.logger.error('Invalid metadata response', { name, version: actualVersion });
                 return null;
             }
             return this.parsePackageMetadata(metadata);
         }
         catch (error) {
-            logger.error('Failed to get package metadata', { name, version, error });
-            throw createBlockchainError(`Failed to get package metadata for ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version });
+            logger_1.logger.error('Failed to get package metadata', { name, version, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get package metadata for ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version });
         }
     }
     /**
@@ -195,7 +196,7 @@ export class AptosBlockchainService {
         try {
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_package_versions`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::get_package_versions`,
                     functionArguments: [name],
                 },
             });
@@ -215,8 +216,8 @@ export class AptosBlockchainService {
             return versions;
         }
         catch (error) {
-            logger.error('Failed to get package versions', { name, error });
-            throw createBlockchainError(`Failed to get versions for package ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name });
+            logger_1.logger.error('Failed to get package versions', { name, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get versions for package ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name });
         }
     }
     /**
@@ -226,7 +227,7 @@ export class AptosBlockchainService {
         try {
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::search_packages`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::search_packages`,
                     functionArguments: [query],
                 },
             });
@@ -234,7 +235,7 @@ export class AptosBlockchainService {
                 return [];
             }
             const results = response[0];
-            if (!results || !(results instanceof MoveVector)) {
+            if (!results || !(results instanceof ts_sdk_1.MoveVector)) {
                 return [];
             }
             return results.values.map(result => {
@@ -246,8 +247,8 @@ export class AptosBlockchainService {
             }).filter((pkg) => pkg !== null);
         }
         catch (error) {
-            logger.error('Failed to search packages', { query, error });
-            throw createBlockchainError(`Failed to search packages: ${error instanceof Error ? error.message : 'Unknown error'}`, { query });
+            logger_1.logger.error('Failed to search packages', { query, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to search packages: ${error instanceof Error ? error.message : 'Unknown error'}`, { query });
         }
     }
     /**
@@ -257,7 +258,7 @@ export class AptosBlockchainService {
         try {
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_registry_stats`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::get_registry_stats`,
                     functionArguments: [],
                 },
             });
@@ -272,8 +273,8 @@ export class AptosBlockchainService {
             return this.parseRegistryStats(values);
         }
         catch (error) {
-            logger.error('Failed to get registry stats', { error });
-            throw createBlockchainError(`Failed to get registry stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get registry stats', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get registry stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -283,7 +284,7 @@ export class AptosBlockchainService {
         try {
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_endorser_info`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::get_endorser_info`,
                     functionArguments: [address],
                 },
             });
@@ -298,8 +299,8 @@ export class AptosBlockchainService {
             return this.parseEndorserInfo(values);
         }
         catch (error) {
-            logger.error('Failed to get endorser info', { address, error });
-            throw createBlockchainError(`Failed to get endorser info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
+            logger_1.logger.error('Failed to get endorser info', { address, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get endorser info for ${address}: ${error instanceof Error ? error.message : 'Unknown error'}`, { address });
         }
     }
     /**
@@ -310,7 +311,7 @@ export class AptosBlockchainService {
             const transaction = await this.aptos.transaction.build.simple({
                 sender: signer.accountAddress,
                 data: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::register_endorser`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::register_endorser`,
                     functionArguments: [stakeAmount],
                 },
             });
@@ -332,8 +333,8 @@ export class AptosBlockchainService {
             };
         }
         catch (error) {
-            logger.error('Failed to register endorser', { error });
-            throw createBlockchainError(`Failed to register endorser: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to register endorser', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to register endorser: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -344,7 +345,7 @@ export class AptosBlockchainService {
             const transaction = await this.aptos.transaction.build.simple({
                 sender: signer.accountAddress,
                 data: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::endorse_package`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::endorse_package`,
                     functionArguments: [name, version],
                 },
             });
@@ -366,8 +367,8 @@ export class AptosBlockchainService {
             };
         }
         catch (error) {
-            logger.error('Failed to endorse package', { name, version, error });
-            throw createBlockchainError(`Failed to endorse package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version });
+            logger_1.logger.error('Failed to endorse package', { name, version, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to endorse package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version });
         }
     }
     /**
@@ -378,7 +379,7 @@ export class AptosBlockchainService {
             const transaction = await this.aptos.transaction.build.simple({
                 sender: signer.accountAddress,
                 data: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::tip_package`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::tip_package`,
                     functionArguments: [name, version, amount],
                 },
             });
@@ -400,8 +401,8 @@ export class AptosBlockchainService {
             };
         }
         catch (error) {
-            logger.error('Failed to tip package', { name, version, amount, error });
-            throw createBlockchainError(`Failed to tip package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version, amount });
+            logger_1.logger.error('Failed to tip package', { name, version, amount, error });
+            throw (0, errors_1.createBlockchainError)(`Failed to tip package ${name}@${version}: ${error instanceof Error ? error.message : 'Unknown error'}`, { name, version, amount });
         }
     }
     /**
@@ -409,33 +410,33 @@ export class AptosBlockchainService {
      */
     createAccountFromPrivateKey(privateKeyString) {
         try {
-            const privateKey = new Ed25519PrivateKey(privateKeyString);
-            return Account.fromPrivateKey({ privateKey });
+            const privateKey = new ts_sdk_1.Ed25519PrivateKey(privateKeyString);
+            return ts_sdk_1.Account.fromPrivateKey({ privateKey });
         }
         catch (error) {
-            throw createBlockchainError(`Failed to create account from private key: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw (0, errors_1.createBlockchainError)(`Failed to create account from private key: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
      * Generate new account
      */
     generateAccount() {
-        return Account.generate();
+        return ts_sdk_1.Account.generate();
     }
     /**
      * Parse Move values into TypeScript types
      */
     parseMoveValue(value) {
-        if (value instanceof U64 || value instanceof U128) {
+        if (value instanceof ts_sdk_1.U64 || value instanceof ts_sdk_1.U128) {
             return Number(value.value);
         }
-        else if (value instanceof Bool) {
+        else if (value instanceof ts_sdk_1.Bool) {
             return value.value;
         }
-        else if (value instanceof MoveString) {
+        else if (value instanceof ts_sdk_1.MoveString) {
             return value.value;
         }
-        else if (value instanceof MoveVector) {
+        else if (value instanceof ts_sdk_1.MoveVector) {
             return value.values.map(v => this.parseMoveValue(v));
         }
         else if (value === null || value === undefined) {
@@ -502,7 +503,7 @@ export class AptosBlockchainService {
                 options: {
                     limit,
                     where: {
-                        account_address: { _eq: APM_CONTRACT_ADDRESS },
+                        account_address: { _eq: types_1.APM_CONTRACT_ADDRESS },
                         creation_number: { _eq: 0 }, // Assuming this is the first event stream
                     },
                 },
@@ -516,8 +517,8 @@ export class AptosBlockchainService {
             }));
         }
         catch (error) {
-            logger.error('Failed to get package published events', { error });
-            throw createBlockchainError(`Failed to get package published events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get package published events', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get package published events: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -529,7 +530,7 @@ export class AptosBlockchainService {
                 options: {
                     limit,
                     where: {
-                        account_address: { _eq: APM_CONTRACT_ADDRESS },
+                        account_address: { _eq: types_1.APM_CONTRACT_ADDRESS },
                         creation_number: { _eq: 1 }, // Assuming this is the second event stream
                     },
                 },
@@ -542,8 +543,8 @@ export class AptosBlockchainService {
             }));
         }
         catch (error) {
-            logger.error('Failed to get package endorsed events', { error });
-            throw createBlockchainError(`Failed to get package endorsed events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get package endorsed events', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get package endorsed events: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -555,7 +556,7 @@ export class AptosBlockchainService {
                 options: {
                     limit,
                     where: {
-                        account_address: { _eq: APM_CONTRACT_ADDRESS },
+                        account_address: { _eq: types_1.APM_CONTRACT_ADDRESS },
                         creation_number: { _eq: 2 }, // Assuming this is the third event stream
                     },
                 },
@@ -569,8 +570,8 @@ export class AptosBlockchainService {
             }));
         }
         catch (error) {
-            logger.error('Failed to get package tipped events', { error });
-            throw createBlockchainError(`Failed to get package tipped events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get package tipped events', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get package tipped events: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -582,7 +583,7 @@ export class AptosBlockchainService {
                 options: {
                     limit,
                     where: {
-                        account_address: { _eq: APM_CONTRACT_ADDRESS },
+                        account_address: { _eq: types_1.APM_CONTRACT_ADDRESS },
                         creation_number: { _eq: 3 }, // Assuming this is the fourth event stream
                     },
                 },
@@ -594,8 +595,8 @@ export class AptosBlockchainService {
             }));
         }
         catch (error) {
-            logger.error('Failed to get endorser registered events', { error });
-            throw createBlockchainError(`Failed to get endorser registered events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get endorser registered events', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get endorser registered events: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -606,7 +607,7 @@ export class AptosBlockchainService {
             // Fetch all package IDs from package_list
             const response = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::get_total_packages`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::get_total_packages`,
                     functionArguments: [],
                 },
             });
@@ -617,7 +618,7 @@ export class AptosBlockchainService {
             // Fetch the package_list vector
             const listResponse = await this.aptos.view({
                 payload: {
-                    function: `${APM_CONTRACT_ADDRESS}::${APM_MODULE_NAME}::search_packages`,
+                    function: `${types_1.APM_CONTRACT_ADDRESS}::${types_1.APM_MODULE_NAME}::search_packages`,
                     functionArguments: [''], // empty string returns all
                 },
             });
@@ -634,8 +635,9 @@ export class AptosBlockchainService {
             }).filter((pkg) => pkg !== null);
         }
         catch (error) {
-            logger.error('Failed to get all packages', { error });
-            throw createBlockchainError(`Failed to get all packages: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to get all packages', { error });
+            throw (0, errors_1.createBlockchainError)(`Failed to get all packages: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 }
+exports.AptosBlockchainService = AptosBlockchainService;

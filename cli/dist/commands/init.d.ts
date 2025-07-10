@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { ConfigService } from '../services/config.js';
+import { ConfigService } from '../services/config';
 export interface InitCommandOptions {
     directory: string;
     name?: string;

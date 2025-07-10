@@ -1,10 +1,16 @@
-import winston from 'winston';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.loggerStream = exports.logger = void 0;
+const winston_1 = __importDefault(require("winston"));
+const path_1 = require("path");
+const fs_1 = require("fs");
 // Ensure logs directory exists
-const logsDir = join(process.cwd(), 'logs');
-if (!existsSync(logsDir)) {
-    mkdirSync(logsDir, { recursive: true });
+const logsDir = (0, path_1.join)(process.cwd(), 'logs');
+if (!(0, fs_1.existsSync)(logsDir)) {
+    (0, fs_1.mkdirSync)(logsDir, { recursive: true });
 }
 // Define log levels
 const levels = {
@@ -22,45 +28,45 @@ const colors = {
     http: 'magenta',
     debug: 'white',
 };
-winston.addColors(colors);
+winston_1.default.addColors(colors);
 // Define format for console output
-const consoleFormat = winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston.format.colorize({ all: true }), winston.format.printf((info) => `${info['timestamp']} ${info.level}: ${info.message}`));
+const consoleFormat = winston_1.default.format.combine(winston_1.default.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston_1.default.format.colorize({ all: true }), winston_1.default.format.printf((info) => `${info['timestamp']} ${info.level}: ${info.message}`));
 // Define format for file output
-const fileFormat = winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston.format.errors({ stack: true }), winston.format.json());
+const fileFormat = winston_1.default.format.combine(winston_1.default.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston_1.default.format.errors({ stack: true }), winston_1.default.format.json());
 // Create transports
 const transports = [
     // Console transport
-    new winston.transports.Console({
+    new winston_1.default.transports.Console({
         format: consoleFormat,
-        level: process.env['NODE_ENV'] === 'production' ? 'warn' : 'debug',
+        level: 'warn', // Only show warnings and errors in CLI
     }),
     // Error log file
-    new winston.transports.File({
-        filename: join(logsDir, 'error.log'),
+    new winston_1.default.transports.File({
+        filename: (0, path_1.join)(logsDir, 'error.log'),
         level: 'error',
         format: fileFormat,
         maxsize: 5242880, // 5MB
         maxFiles: 5,
     }),
     // Combined log file
-    new winston.transports.File({
-        filename: join(logsDir, 'combined.log'),
+    new winston_1.default.transports.File({
+        filename: (0, path_1.join)(logsDir, 'combined.log'),
         format: fileFormat,
         maxsize: 5242880, // 5MB
         maxFiles: 5,
     }),
 ];
 // Create logger instance
-export const logger = winston.createLogger({
-    level: process.env['NODE_ENV'] === 'production' ? 'warn' : 'debug',
+exports.logger = winston_1.default.createLogger({
+    level: 'warn', // Only show warnings and errors in CLI
     levels,
     format: fileFormat,
     transports,
     exitOnError: false,
 });
 // Add stream for HTTP logging middleware if needed
-export const loggerStream = {
+exports.loggerStream = {
     write: (message) => {
-        logger.http(message.substring(0, message.lastIndexOf('\n')));
+        exports.logger.http(message.substring(0, message.lastIndexOf('\n')));
     },
 };

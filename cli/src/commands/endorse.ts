@@ -1,7 +1,7 @@
 import chalk from 'chalk';
-import { logger } from '../utils/logger.js';
-import { AptosBlockchainService, PLATFORM_ENDORSER_FEE } from '../services/blockchain.js';
-import { ConfigService } from '../services/config.js';
+import { logger } from '../utils/logger';
+import { AptosBlockchainService, PLATFORM_ENDORSER_FEE } from '../services/blockchain';
+import { ConfigService } from '../services/config';
 import { Network } from '@aptos-labs/ts-sdk';
 import { Command } from 'commander';
 import * as readline from 'readline';
@@ -183,7 +183,7 @@ export class EndorseCommand {
 // Temporary debug: print getPackageMetadata output if run with --debug-metadata
 if (process.argv.includes('--debug-metadata')) {
   (async () => {
-    const { ConfigService } = await import('../services/config.js');
+    const { ConfigService } = require('../services/config');
     const config = new ConfigService();
     const blockchain = new AptosBlockchainService();
     const result = await blockchain.getPackageMetadata('demo_package');

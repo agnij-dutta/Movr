@@ -2,16 +2,16 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { ConfigService } from '../services/config.js';
-import { InitCommand } from '../commands/init.js';
-import { PublishCommand } from '../commands/publish.js';
-import { InstallCommand } from '../commands/install.js';
-import { SearchCommand } from '../commands/search.js';
-import { EndorseCommand } from '../commands/endorse.js';
-import { IPFSCommand } from '../commands/ipfs.js';
-import { WalletCommand } from '../commands/wallet.js';
-import { errorHandler } from '../utils/errors.js';
-import { logger } from '../utils/logger.js';
+import { ConfigService } from '../services/config';
+import { InitCommand } from '../commands/init';
+import { PublishCommand } from '../commands/publish';
+import { InstallCommand } from '../commands/install';
+import { SearchCommand } from '../commands/search';
+import { EndorseCommand } from '../commands/endorse';
+import { IPFSCommand } from '../commands/ipfs';
+import { WalletCommand } from '../commands/wallet';
+import { errorHandler } from '../utils/errors';
+import { logger } from '../utils/logger';
 import { dirname, join } from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
@@ -21,7 +21,7 @@ dotenv.config();
 
 const CLI_VERSION = '1.0.0'; // Update this manually for releases
 
-async function main() {
+export default async function main() {
   try {
     // Display banner
     console.log(chalk.cyan(`
@@ -64,7 +64,9 @@ async function main() {
   }
 }
 
-main().catch(error => {
-  logger.error('Fatal error:', error);
-  process.exit(1);
-}); 
+// Replace the ESM import.meta check with CommonJS equivalent
+if (require.main === module) {
+  main().catch((error) => {
+    errorHandler.handleError(error);
+  });
+} 

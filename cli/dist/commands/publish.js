@@ -1,23 +1,58 @@
-import fs from 'fs-extra';
-import path from 'path';
-import chalk from 'chalk';
-import { createFileSystemError } from '../utils/errors.js';
-import { AptosBlockchainService, PLATFORM_PUBLISH_FEE } from '../services/blockchain.js';
-import { PinataIPFSService } from '../services/ipfs.js';
-import { Network } from '@aptos-labs/ts-sdk';
-import { PACKAGE_TYPE_LIBRARY } from '../services/types.js';
-import * as readline from 'readline';
-export class PublishCommand {
-    blockchain;
-    ipfs;
-    config;
-    program;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PublishCommand = void 0;
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const path_1 = __importDefault(require("path"));
+const chalk_1 = __importDefault(require("chalk"));
+const errors_1 = require("../utils/errors");
+const blockchain_1 = require("../services/blockchain");
+const ipfs_1 = require("../services/ipfs");
+const ts_sdk_1 = require("@aptos-labs/ts-sdk");
+const types_1 = require("../services/types");
+const readline = __importStar(require("readline"));
+class PublishCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new AptosBlockchainService(config.currentNetwork || Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
         // PinataIPFSService now supports JWT authentication if present in config
-        this.ipfs = new PinataIPFSService(config.ipfs);
+        this.ipfs = new ipfs_1.PinataIPFSService(config.ipfs);
         // Register command with Commander
         this.program = parentProgram
             .command('publish')
@@ -39,56 +74,56 @@ export class PublishCommand {
     async execute(options) {
         try {
             // Validate package directory
-            const packageDir = path.resolve(options.packagePath);
-            if (!await fs.pathExists(packageDir)) {
-                throw createFileSystemError('Package directory does not exist');
+            const packageDir = path_1.default.resolve(options.packagePath);
+            if (!await fs_extra_1.default.pathExists(packageDir)) {
+                throw (0, errors_1.createFileSystemError)('Package directory does not exist');
             }
             // Validate Move.toml exists
-            const moveTomlPath = path.join(packageDir, 'Move.toml');
-            if (!await fs.pathExists(moveTomlPath)) {
-                throw createFileSystemError('Move.toml not found in package directory');
+            const moveTomlPath = path_1.default.join(packageDir, 'Move.toml');
+            if (!await fs_extra_1.default.pathExists(moveTomlPath)) {
+                throw (0, errors_1.createFileSystemError)('Move.toml not found in package directory');
             }
             // Read package name from Move.toml
-            const moveToml = await fs.readFile(moveTomlPath, 'utf-8');
+            const moveToml = await fs_extra_1.default.readFile(moveTomlPath, 'utf-8');
             const packageName = this.extractPackageName(moveToml);
             if (!packageName) {
-                throw createFileSystemError('Invalid Move.toml: package name not found');
+                throw (0, errors_1.createFileSystemError)('Invalid Move.toml: package name not found');
             }
             // Validate version format
             const version = options.pkgVersion || '1.0.0';
             if (!this.isValidSemver(version)) {
-                throw createFileSystemError('Invalid version format. Must be semver (e.g., 1.0.0)');
+                throw (0, errors_1.createFileSystemError)('Invalid version format. Must be semver (e.g., 1.0.0)');
             }
             // Create temporary directory and copy package contents
-            const tempDir = await fs.mkdtemp(path.join('/tmp', 'apm_publish_'));
-            await fs.copy(packageDir, tempDir);
+            const tempDir = await fs_extra_1.default.mkdtemp(path_1.default.join('/tmp', 'apm_publish_'));
+            await fs_extra_1.default.copy(packageDir, tempDir);
             // Upload to IPFS
             const uploadResult = await this.ipfs.uploadDirectory(tempDir);
             // Get wallet account
             const walletConfig = this.config.getWallet(options.wallet || '');
             if (!walletConfig || !walletConfig.privateKey) {
-                throw createFileSystemError('No wallet configured or private key missing. Run `apm wallet init` first');
+                throw (0, errors_1.createFileSystemError)('No wallet configured or private key missing. Run `apm wallet init` first');
             }
             // Create account from private key using blockchain service
             const account = this.blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
             // Check balance and warn about fee
             const balance = await this.blockchain.getAccountBalance(account.accountAddress.toString());
-            const feeInAPT = this.blockchain.formatToAPT(PLATFORM_PUBLISH_FEE);
+            const feeInAPT = this.blockchain.formatToAPT(blockchain_1.PLATFORM_PUBLISH_FEE);
             const balanceInAPT = this.blockchain.formatToAPT(balance);
-            console.log(chalk.yellow(`\n📋 Platform Fee Information:`));
-            console.log(chalk.yellow(`   Publishing fee: ${feeInAPT} APT`));
-            console.log(chalk.yellow(`   Your balance: ${balanceInAPT} APT`));
-            if (balance < PLATFORM_PUBLISH_FEE) {
-                console.log(chalk.red(`\n❌ Insufficient balance! You need at least ${feeInAPT} APT to publish.`));
+            console.log(chalk_1.default.yellow(`\n📋 Platform Fee Information:`));
+            console.log(chalk_1.default.yellow(`   Publishing fee: ${feeInAPT} APT`));
+            console.log(chalk_1.default.yellow(`   Your balance: ${balanceInAPT} APT`));
+            if (balance < blockchain_1.PLATFORM_PUBLISH_FEE) {
+                console.log(chalk_1.default.red(`\n❌ Insufficient balance! You need at least ${feeInAPT} APT to publish.`));
                 if (this.config.getConfig().currentNetwork !== 'mainnet') {
-                    console.log(chalk.gray(`   💡 Fund your account: aptos account fund-with-faucet --account ${account.accountAddress}`));
+                    console.log(chalk_1.default.gray(`   💡 Fund your account: aptos account fund-with-faucet --account ${account.accountAddress}`));
                 }
                 return;
             }
             // Ask for confirmation
             const confirmed = await this.askForConfirmation(`\n💰 Publishing will cost ${feeInAPT} APT. Continue? (y/N): `);
             if (!confirmed) {
-                console.log(chalk.gray('Publishing cancelled.'));
+                console.log(chalk_1.default.gray('Publishing cancelled.'));
                 return;
             }
             // Parse tags
@@ -103,7 +138,7 @@ export class PublishCommand {
                 repository: options.repository,
                 license: options.license,
                 tags,
-                packageType: PACKAGE_TYPE_LIBRARY,
+                packageType: types_1.PACKAGE_TYPE_LIBRARY,
                 publisher: account.accountAddress.toString(),
                 endorsements: [],
                 timestamp: Math.floor(Date.now() / 1000),
@@ -111,33 +146,33 @@ export class PublishCommand {
                 totalTips: 0,
             });
             // Clean up temp directory
-            await fs.remove(tempDir);
+            await fs_extra_1.default.remove(tempDir);
             if (result.success) {
-                console.log(chalk.green('✅ Package published successfully!'));
-                console.log(chalk.gray(`Transaction hash: ${result.transactionHash}`));
-                console.log(chalk.gray(`IPFS hash: ${uploadResult.ipfsHash}`));
-                console.log(chalk.gray(`IPFS gateway URL: ${this.config.getIPFSConfig().gatewayUrl}/ipfs/${uploadResult.ipfsHash}`));
+                console.log(chalk_1.default.green('✅ Package published successfully!'));
+                console.log(chalk_1.default.gray(`Transaction hash: ${result.transactionHash}`));
+                console.log(chalk_1.default.gray(`IPFS hash: ${uploadResult.ipfsHash}`));
+                console.log(chalk_1.default.gray(`IPFS gateway URL: ${this.config.getIPFSConfig().gatewayUrl}/ipfs/${uploadResult.ipfsHash}`));
                 // Verification step: fetch package metadata
                 const published = await this.blockchain.getPackageMetadata(packageName, version);
                 if (published && published.ipfsHash === uploadResult.ipfsHash) {
-                    console.log(chalk.green('✓') + ' On-chain verification: Package metadata matches published data.');
+                    console.log(chalk_1.default.green('✓') + ' On-chain verification: Package metadata matches published data.');
                 }
                 else {
-                    console.log(chalk.yellow('!') + ' On-chain verification: Could not verify published package metadata.');
+                    console.log(chalk_1.default.yellow('!') + ' On-chain verification: Could not verify published package metadata.');
                 }
             }
             else {
-                console.log(chalk.red('✗') + ' Failed to publish package.');
+                console.log(chalk_1.default.red('✗') + ' Failed to publish package.');
                 if (result.vmStatus) {
-                    console.log(chalk.red(result.vmStatus));
+                    console.log(chalk_1.default.red(result.vmStatus));
                 }
             }
         }
         catch (error) {
             console.error('Failed to publish package:', error);
-            console.log(chalk.red('✗') + ' Failed to publish package.');
+            console.log(chalk_1.default.red('✗') + ' Failed to publish package.');
             if (error instanceof Error) {
-                console.log(chalk.red(error.message));
+                console.log(chalk_1.default.red(error.message));
             }
         }
     }
@@ -162,3 +197,4 @@ export class PublishCommand {
         });
     }
 }
+exports.PublishCommand = PublishCommand;

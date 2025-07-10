@@ -1,8 +1,9 @@
-import { logger } from '../utils/logger.js';
-import { PinataIPFSService } from '../services/ipfs.js';
-export class IPFSCommand {
-    config;
-    program;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IPFSCommand = void 0;
+const logger_1 = require("../utils/logger");
+const ipfs_1 = require("../services/ipfs");
+class IPFSCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         // Register command with Commander
@@ -37,8 +38,8 @@ export class IPFSCommand {
             await this.config.initialize();
             const ipfsConfig = this.config.getIPFSConfig();
             // PinataIPFSService now supports JWT authentication if present in config
-            const ipfsService = new PinataIPFSService(ipfsConfig);
-            logger.info('Uploading to IPFS...', { path: options.path });
+            const ipfsService = new ipfs_1.PinataIPFSService(ipfsConfig);
+            logger_1.logger.info('Uploading to IPFS...', { path: options.path });
             const result = await ipfsService.uploadFile(options.path, options.metadata ? JSON.parse(options.metadata) : undefined);
             console.log('File uploaded successfully!');
             console.log('IPFS Hash:', result.ipfsHash);
@@ -46,7 +47,7 @@ export class IPFSCommand {
             console.log('Timestamp:', result.timestamp);
         }
         catch (error) {
-            logger.error('Failed to upload file', { error });
+            logger_1.logger.error('Failed to upload file', { error });
             throw error;
         }
     }
@@ -54,14 +55,14 @@ export class IPFSCommand {
         try {
             await this.config.initialize();
             const ipfsConfig = this.config.getIPFSConfig();
-            const ipfsService = new PinataIPFSService(ipfsConfig);
-            logger.info('Downloading from IPFS...', { hash: options.hash });
+            const ipfsService = new ipfs_1.PinataIPFSService(ipfsConfig);
+            logger_1.logger.info('Downloading from IPFS...', { hash: options.hash });
             await ipfsService.downloadFile(options.hash, options.output);
             console.log('File downloaded successfully!');
             console.log('Output path:', options.output);
         }
         catch (error) {
-            logger.error('Failed to download file', { error });
+            logger_1.logger.error('Failed to download file', { error });
             throw error;
         }
     }
@@ -69,8 +70,8 @@ export class IPFSCommand {
         try {
             await this.config.initialize();
             const ipfsConfig = this.config.getIPFSConfig();
-            const ipfsService = new PinataIPFSService(ipfsConfig);
-            logger.info('Testing IPFS connection...');
+            const ipfsService = new ipfs_1.PinataIPFSService(ipfsConfig);
+            logger_1.logger.info('Testing IPFS connection...');
             const isConnected = await ipfsService.testConnection();
             if (isConnected) {
                 console.log('✅ IPFS connection successful!');
@@ -82,8 +83,9 @@ export class IPFSCommand {
             }
         }
         catch (error) {
-            logger.error('Failed to test IPFS connection', { error });
+            logger_1.logger.error('Failed to test IPFS connection', { error });
             throw error;
         }
     }
 }
+exports.IPFSCommand = IPFSCommand;

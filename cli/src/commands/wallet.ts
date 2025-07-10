@@ -1,7 +1,7 @@
 import chalk from 'chalk';
-import { logger } from '../utils/logger.js';
-import { ConfigService, WalletConfig } from '../services/config.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
+import { logger } from '../utils/logger';
+import { ConfigService, WalletConfig } from '../services/config';
+import { AptosBlockchainService } from '../services/blockchain';
 import { Network } from '@aptos-labs/ts-sdk';
 import { Account } from '@aptos-labs/ts-sdk';
 import { Command } from 'commander';

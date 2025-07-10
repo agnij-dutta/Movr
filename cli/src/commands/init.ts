@@ -2,11 +2,11 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { logger } from '../utils/logger.js';
-import { createFileSystemError } from '../utils/errors.js';
+import { logger } from '../utils/logger';
+import { createFileSystemError } from '../utils/errors';
 import { Command } from 'commander';
-import { ConfigService } from '../services/config.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
+import { ConfigService } from '../services/config';
+import { AptosBlockchainService } from '../services/blockchain';
 import { Network } from '@aptos-labs/ts-sdk';
 
 export interface InitCommandOptions {

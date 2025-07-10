@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-export {};
+export default function main(): Promise<void>;

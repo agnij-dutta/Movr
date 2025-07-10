@@ -1,14 +1,18 @@
-import fs from 'fs-extra';
-import path from 'path';
-import chalk from 'chalk';
-import inquirer from 'inquirer';
-import { logger } from '../utils/logger.js';
-import { createFileSystemError } from '../utils/errors.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
-import { Network } from '@aptos-labs/ts-sdk';
-export class InitCommand {
-    config;
-    program;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InitCommand = void 0;
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const path_1 = __importDefault(require("path"));
+const chalk_1 = __importDefault(require("chalk"));
+const inquirer_1 = __importDefault(require("inquirer"));
+const logger_1 = require("../utils/logger");
+const errors_1 = require("../utils/errors");
+const blockchain_1 = require("../services/blockchain");
+const ts_sdk_1 = require("@aptos-labs/ts-sdk");
+class InitCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         // Register command with Commander
@@ -32,16 +36,16 @@ export class InitCommand {
     }
     async execute(options) {
         try {
-            logger.info('Initializing new Move package', {
+            logger_1.logger.info('Initializing new Move package', {
                 directory: options.directory,
                 template: options.template,
             });
-            const packageDir = path.resolve(options.directory);
+            const packageDir = path_1.default.resolve(options.directory);
             // Check if directory exists and is not empty
-            if (await fs.pathExists(packageDir)) {
-                const files = await fs.readdir(packageDir);
+            if (await fs_extra_1.default.pathExists(packageDir)) {
+                const files = await fs_extra_1.default.readdir(packageDir);
                 if (files.length > 0) {
-                    const { proceed } = await inquirer.prompt([
+                    const { proceed } = await inquirer_1.default.prompt([
                         {
                             type: 'confirm',
                             name: 'proceed',
@@ -50,34 +54,34 @@ export class InitCommand {
                         },
                     ]);
                     if (!proceed) {
-                        console.log(chalk.yellow('Operation cancelled.'));
+                        console.log(chalk_1.default.yellow('Operation cancelled.'));
                         return;
                     }
                 }
             }
             else {
-                await fs.ensureDir(packageDir);
+                await fs_extra_1.default.ensureDir(packageDir);
             }
             // Gather package information
             const packageInfo = await this.gatherPackageInfo(options);
             // Create package structure
             await this.createPackageStructure(packageDir, packageInfo, options.template);
-            console.log(chalk.green('✅ Move package initialized successfully!'));
-            console.log(chalk.gray(`Package created at: ${packageDir}`));
-            console.log(chalk.gray('\nNext steps:'));
-            console.log(chalk.gray('  1. Navigate to the package directory'));
-            console.log(chalk.gray('  2. Build your Move modules in sources/'));
-            console.log(chalk.gray('  3. Run tests with `movr test`'));
-            console.log(chalk.gray('  4. Publish with `movr publish`'));
+            console.log(chalk_1.default.green('✅ Move package initialized successfully!'));
+            console.log(chalk_1.default.gray(`Package created at: ${packageDir}`));
+            console.log(chalk_1.default.gray('\nNext steps:'));
+            console.log(chalk_1.default.gray('  1. Navigate to the package directory'));
+            console.log(chalk_1.default.gray('  2. Build your Move modules in sources/'));
+            console.log(chalk_1.default.gray('  3. Run tests with `movr test`'));
+            console.log(chalk_1.default.gray('  4. Publish with `movr publish`'));
         }
         catch (error) {
-            logger.error('Failed to initialize package', { error });
+            logger_1.logger.error('Failed to initialize package', { error });
             throw error;
         }
     }
     async executeRegistryInit(options) {
         try {
-            logger.info('Initializing movr registry');
+            logger_1.logger.info('Initializing movr registry');
             // Get wallet configuration
             const walletConfig = this.config.getWallet(options.wallet || '');
             if (!walletConfig || !walletConfig.privateKey) {
@@ -85,11 +89,11 @@ export class InitCommand {
             }
             // Initialize blockchain service
             const config = this.config.getConfig();
-            const blockchain = new AptosBlockchainService(config.currentNetwork || Network.DEVNET);
+            const blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
             // Create account from private key
             const account = blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
-            console.log(chalk.blue('Initializing movr registry...'));
-            console.log(chalk.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
+            console.log(chalk_1.default.blue('Initializing movr registry...'));
+            console.log(chalk_1.default.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
             // Get contract address from config
             const contractAddress = this.config.getRegistryContract();
             // Call the registry initialization function
@@ -112,21 +116,21 @@ export class InitCommand {
                 transactionHash: submittedTx.hash,
             });
             if (txResult.success) {
-                console.log(chalk.green('✅ movr registry initialized successfully!'));
-                console.log(chalk.gray(`Transaction hash: ${submittedTx.hash}`));
+                console.log(chalk_1.default.green('✅ movr registry initialized successfully!'));
+                console.log(chalk_1.default.gray(`Transaction hash: ${submittedTx.hash}`));
             }
             else {
-                console.log(chalk.red('✗ Failed to initialize registry'));
+                console.log(chalk_1.default.red('✗ Failed to initialize registry'));
                 if (txResult.vm_status) {
-                    console.log(chalk.red(txResult.vm_status));
+                    console.log(chalk_1.default.red(txResult.vm_status));
                 }
             }
         }
         catch (error) {
-            logger.error('Failed to initialize registry', { error });
-            console.log(chalk.red('✗ Failed to initialize registry'));
+            logger_1.logger.error('Failed to initialize registry', { error });
+            console.log(chalk_1.default.red('✗ Failed to initialize registry'));
             if (error instanceof Error) {
-                console.log(chalk.red(error.message));
+                console.log(chalk_1.default.red(error.message));
             }
         }
     }
@@ -137,7 +141,7 @@ export class InitCommand {
                 type: 'input',
                 name: 'name',
                 message: 'Package name:',
-                default: path.basename(path.resolve(options.directory)),
+                default: path_1.default.basename(path_1.default.resolve(options.directory)),
                 validate: (input) => {
                     if (!input.trim()) {
                         return 'Package name is required';
@@ -165,7 +169,7 @@ export class InitCommand {
                 default: '',
             });
         }
-        const answers = await inquirer.prompt(questions);
+        const answers = await inquirer_1.default.prompt(questions);
         return {
             name: options.name || answers.name,
             author: options.author || answers.author,
@@ -176,28 +180,28 @@ export class InitCommand {
         try {
             // Create Move.toml
             const moveToml = this.generateMoveToml(packageInfo);
-            await fs.writeFile(path.join(packageDir, 'Move.toml'), moveToml);
+            await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'Move.toml'), moveToml);
             // Create directory structure
-            await fs.ensureDir(path.join(packageDir, 'sources'));
-            await fs.ensureDir(path.join(packageDir, 'tests'));
-            await fs.ensureDir(path.join(packageDir, 'scripts'));
-            await fs.ensureDir(path.join(packageDir, 'doc'));
+            await fs_extra_1.default.ensureDir(path_1.default.join(packageDir, 'sources'));
+            await fs_extra_1.default.ensureDir(path_1.default.join(packageDir, 'tests'));
+            await fs_extra_1.default.ensureDir(path_1.default.join(packageDir, 'scripts'));
+            await fs_extra_1.default.ensureDir(path_1.default.join(packageDir, 'doc'));
             // Create template files based on selected template
             await this.createTemplateFiles(packageDir, packageInfo, template);
             // Create README.md
             const readme = this.generateReadme(packageInfo);
-            await fs.writeFile(path.join(packageDir, 'README.md'), readme);
+            await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'README.md'), readme);
             // Create .gitignore
             const gitignore = this.generateGitignore();
-            await fs.writeFile(path.join(packageDir, '.gitignore'), gitignore);
-            logger.info('Package structure created', {
+            await fs_extra_1.default.writeFile(path_1.default.join(packageDir, '.gitignore'), gitignore);
+            logger_1.logger.info('Package structure created', {
                 packageDir,
                 template,
                 name: packageInfo.name,
             });
         }
         catch (error) {
-            throw createFileSystemError(`Failed to create package structure: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw (0, errors_1.createFileSystemError)(`Failed to create package structure: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     generateMoveToml(packageInfo) {
@@ -286,7 +290,7 @@ ${packageInfo.name} = "0x1"
     }
 }
 `;
-        await fs.writeFile(path.join(packageDir, 'sources', `${packageInfo.name}.move`), moduleContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'sources', `${packageInfo.name}.move`), moduleContent);
         // Create test file
         const testContent = `#[test_only]
 module ${packageInfo.name}::${packageInfo.name}_tests {
@@ -313,7 +317,7 @@ module ${packageInfo.name}::${packageInfo.name}_tests {
     }
 }
 `;
-        await fs.writeFile(path.join(packageDir, 'tests', `${packageInfo.name}_tests.move`), testContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'tests', `${packageInfo.name}_tests.move`), testContent);
     }
     async createTokenTemplate(packageDir, packageInfo) {
         const moduleContent = `module ${packageInfo.name}::token {
@@ -491,14 +495,14 @@ module ${packageInfo.name}::token_tests {
     }
 }`;
         // Create source and test files
-        await fs.writeFile(path.join(packageDir, 'sources', 'token.move'), moduleContent);
-        await fs.writeFile(path.join(packageDir, 'tests', 'token_tests.move'), testContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'sources', 'token.move'), moduleContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'tests', 'token_tests.move'), testContent);
         // Update Move.toml with token dependencies
-        const moveTomlPath = path.join(packageDir, 'Move.toml');
-        const moveToml = await fs.readFile(moveTomlPath, 'utf-8');
+        const moveTomlPath = path_1.default.join(packageDir, 'Move.toml');
+        const moveToml = await fs_extra_1.default.readFile(moveTomlPath, 'utf-8');
         const updatedMoveToml = moveToml.replace('[dependencies]', `[dependencies]
 AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-token-objects/", rev = "main" }`);
-        await fs.writeFile(moveTomlPath, updatedMoveToml);
+        await fs_extra_1.default.writeFile(moveTomlPath, updatedMoveToml);
     }
     async createDefiTemplate(packageDir, packageInfo) {
         const moduleContent = `module ${packageInfo.name}::defi {
@@ -739,14 +743,14 @@ module ${packageInfo.name}::defi_tests {
     }
 }`;
         // Create source and test files
-        await fs.writeFile(path.join(packageDir, 'sources', 'defi.move'), moduleContent);
-        await fs.writeFile(path.join(packageDir, 'tests', 'defi_tests.move'), testContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'sources', 'defi.move'), moduleContent);
+        await fs_extra_1.default.writeFile(path_1.default.join(packageDir, 'tests', 'defi_tests.move'), testContent);
         // Update Move.toml with DeFi dependencies
-        const moveTomlPath = path.join(packageDir, 'Move.toml');
-        const moveToml = await fs.readFile(moveTomlPath, 'utf-8');
+        const moveTomlPath = path_1.default.join(packageDir, 'Move.toml');
+        const moveToml = await fs_extra_1.default.readFile(moveTomlPath, 'utf-8');
         const updatedMoveToml = moveToml.replace('[dependencies]', `[dependencies]
 AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-token-objects/", rev = "main" }`);
-        await fs.writeFile(moveTomlPath, updatedMoveToml);
+        await fs_extra_1.default.writeFile(moveTomlPath, updatedMoveToml);
     }
     generateReadme(packageInfo) {
         return `# ${packageInfo.name}
@@ -815,3 +819,4 @@ Thumbs.db
 `;
     }
 }
+exports.InitCommand = InitCommand;

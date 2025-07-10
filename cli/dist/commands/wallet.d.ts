@@ -1,4 +1,4 @@
-import { ConfigService } from '../services/config.js';
+import { ConfigService } from '../services/config';
 import { Command } from 'commander';
 export interface WalletCommandOptions {
     action: 'create' | 'list' | 'show' | 'remove' | 'use' | 'import';

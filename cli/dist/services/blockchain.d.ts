@@ -1,5 +1,5 @@
 import { Network, Account } from '@aptos-labs/ts-sdk';
-import { PackageMetadata, EndorserInfo, RegistryStats, TransactionResult, PackagePublishedEvent, PackageEndorsedEvent, PackageTippedEvent, EndorserRegisteredEvent } from './types.js';
+import { PackageMetadata, EndorserInfo, RegistryStats, TransactionResult, PackagePublishedEvent, PackageEndorsedEvent, PackageTippedEvent, EndorserRegisteredEvent } from './types';
 export declare const PLATFORM_PUBLISH_FEE = 100000000;
 export declare const PLATFORM_ENDORSER_FEE = 100000000;
 export declare class AptosBlockchainService {

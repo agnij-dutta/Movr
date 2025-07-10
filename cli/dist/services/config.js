@@ -1,11 +1,15 @@
-import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
-import { logger } from '../utils/logger.js';
-import { createConfigError, createFileSystemError } from '../utils/errors.js';
-export class ConfigService {
-    configPath;
-    config;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ConfigService = void 0;
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const path_1 = __importDefault(require("path"));
+const os_1 = __importDefault(require("os"));
+const logger_1 = require("../utils/logger");
+const errors_1 = require("../utils/errors");
+class ConfigService {
     constructor(configPath) {
         this.configPath = configPath || this.getDefaultConfigPath();
         this.config = this.getDefaultConfig();
@@ -16,13 +20,13 @@ export class ConfigService {
     async initialize() {
         try {
             await this.loadConfig();
-            logger.debug('Configuration service initialized', {
+            logger_1.logger.debug('Configuration service initialized', {
                 configPath: this.configPath,
                 network: this.config.currentNetwork,
             });
         }
         catch (error) {
-            logger.warn('Failed to load configuration, using defaults', { error });
+            logger_1.logger.warn('Failed to load configuration, using defaults', { error });
             await this.saveConfig();
         }
     }
@@ -39,7 +43,7 @@ export class ConfigService {
         const networkName = this.config.currentNetwork;
         const network = this.config.networks[networkName];
         if (!network) {
-            throw createConfigError(`Network '${networkName}' not found in configuration`);
+            throw (0, errors_1.createConfigError)(`Network '${networkName}' not found in configuration`);
         }
         return network;
     }
@@ -48,11 +52,11 @@ export class ConfigService {
      */
     async setCurrentNetwork(networkName) {
         if (!this.config.networks[networkName]) {
-            throw createConfigError(`Network '${networkName}' not found`);
+            throw (0, errors_1.createConfigError)(`Network '${networkName}' not found`);
         }
         this.config.currentNetwork = networkName;
         await this.saveConfig();
-        logger.info('Current network changed', { network: networkName });
+        logger_1.logger.info('Current network changed', { network: networkName });
     }
     /**
      * Add or update network configuration
@@ -60,7 +64,7 @@ export class ConfigService {
     async setNetwork(name, config) {
         this.config.networks[name] = config;
         await this.saveConfig();
-        logger.info('Network configuration updated', { name, url: config.url });
+        logger_1.logger.info('Network configuration updated', { name, url: config.url });
     }
     /**
      * Get IPFS configuration
@@ -74,7 +78,7 @@ export class ConfigService {
     async setIPFSConfig(config) {
         this.config.ipfs = config;
         await this.saveConfig();
-        logger.info('IPFS configuration updated', {
+        logger_1.logger.info('IPFS configuration updated', {
             gatewayUrl: config.gatewayUrl,
         });
     }
@@ -111,7 +115,7 @@ export class ConfigService {
         // Check if wallet name already exists
         const existingWallet = this.config.wallets.find(w => w.name === wallet.name);
         if (existingWallet) {
-            throw createConfigError(`Wallet '${wallet.name}' already exists`);
+            throw (0, errors_1.createConfigError)(`Wallet '${wallet.name}' already exists`);
         }
         // If this is the first wallet or marked as default, make it default
         if (this.config.wallets.length === 0 || wallet.isDefault) {
@@ -122,7 +126,7 @@ export class ConfigService {
         }
         this.config.wallets.push(wallet);
         await this.saveConfig();
-        logger.info('Wallet added', {
+        logger_1.logger.info('Wallet added', {
             name: wallet.name,
             address: wallet.address,
             isDefault: wallet.isDefault,
@@ -134,7 +138,7 @@ export class ConfigService {
     async removeWallet(name) {
         const index = this.config.wallets.findIndex(w => w.name === name);
         if (index === -1) {
-            throw createConfigError(`Wallet '${name}' not found`);
+            throw (0, errors_1.createConfigError)(`Wallet '${name}' not found`);
         }
         const removedWallet = this.config.wallets[index];
         this.config.wallets.splice(index, 1);
@@ -149,7 +153,7 @@ export class ConfigService {
             this.config.defaultWallet = undefined;
         }
         await this.saveConfig();
-        logger.info('Wallet removed', { name });
+        logger_1.logger.info('Wallet removed', { name });
     }
     /**
      * Set default wallet
@@ -157,7 +161,7 @@ export class ConfigService {
     async setDefaultWallet(name) {
         const wallet = this.config.wallets.find(w => w.name === name);
         if (!wallet) {
-            throw createConfigError(`Wallet '${name}' not found`);
+            throw (0, errors_1.createConfigError)(`Wallet '${name}' not found`);
         }
         // Remove default flag from all wallets
         this.config.wallets.forEach(w => w.isDefault = false);
@@ -165,7 +169,7 @@ export class ConfigService {
         wallet.isDefault = true;
         this.config.defaultWallet = name;
         await this.saveConfig();
-        logger.info('Default wallet changed', { name });
+        logger_1.logger.info('Default wallet changed', { name });
     }
     /**
      * Get registry contract address for current network
@@ -179,17 +183,17 @@ export class ConfigService {
      */
     async loadConfig() {
         try {
-            if (await fs.pathExists(this.configPath)) {
-                const configData = await fs.readJSON(this.configPath);
+            if (await fs_extra_1.default.pathExists(this.configPath)) {
+                const configData = await fs_extra_1.default.readJSON(this.configPath);
                 this.config = { ...this.getDefaultConfig(), ...configData };
                 // Validate required fields
                 this.validateConfig();
-                logger.debug('Configuration loaded', { configPath: this.configPath });
+                logger_1.logger.debug('Configuration loaded', { configPath: this.configPath });
             }
         }
         catch (error) {
-            logger.error('Failed to load configuration', { configPath: this.configPath, error });
-            throw createFileSystemError(`Failed to load configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to load configuration', { configPath: this.configPath, error });
+            throw (0, errors_1.createFileSystemError)(`Failed to load configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -197,21 +201,21 @@ export class ConfigService {
      */
     async saveConfig() {
         try {
-            await fs.ensureDir(path.dirname(this.configPath));
-            await fs.writeJSON(this.configPath, this.config, { spaces: 2 });
-            logger.debug('Configuration saved', { configPath: this.configPath });
+            await fs_extra_1.default.ensureDir(path_1.default.dirname(this.configPath));
+            await fs_extra_1.default.writeJSON(this.configPath, this.config, { spaces: 2 });
+            logger_1.logger.debug('Configuration saved', { configPath: this.configPath });
         }
         catch (error) {
-            logger.error('Failed to save configuration', { configPath: this.configPath, error });
-            throw createFileSystemError(`Failed to save configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_1.logger.error('Failed to save configuration', { configPath: this.configPath, error });
+            throw (0, errors_1.createFileSystemError)(`Failed to save configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
      * Get default configuration path
      */
     getDefaultConfigPath() {
-        const homeDir = os.homedir();
-        return path.join(homeDir, '.apm', 'config.json');
+        const homeDir = os_1.default.homedir();
+        return path_1.default.join(homeDir, '.apm', 'config.json');
     }
     /**
      * Get default configuration
@@ -252,20 +256,21 @@ export class ConfigService {
      */
     validateConfig() {
         if (!this.config.version) {
-            throw createConfigError('Configuration missing version');
+            throw (0, errors_1.createConfigError)('Configuration missing version');
         }
         if (!this.config.currentNetwork) {
-            throw createConfigError('Configuration missing current network');
+            throw (0, errors_1.createConfigError)('Configuration missing current network');
         }
         if (!this.config.networks || Object.keys(this.config.networks).length === 0) {
-            throw createConfigError('Configuration missing network definitions');
+            throw (0, errors_1.createConfigError)('Configuration missing network definitions');
         }
         if (!this.config.ipfs) {
-            throw createConfigError('Configuration missing IPFS settings');
+            throw (0, errors_1.createConfigError)('Configuration missing IPFS settings');
         }
         const currentNetwork = this.config.networks[this.config.currentNetwork];
         if (!currentNetwork) {
-            throw createConfigError(`Current network '${this.config.currentNetwork}' not defined`);
+            throw (0, errors_1.createConfigError)(`Current network '${this.config.currentNetwork}' not defined`);
         }
     }
 }
+exports.ConfigService = ConfigService;

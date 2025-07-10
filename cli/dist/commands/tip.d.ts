@@ -1,4 +1,4 @@
-import { ConfigService } from '../services/config.js';
+import { ConfigService } from '../services/config';
 export interface TipCommandOptions {
     name: string;
     version?: string;

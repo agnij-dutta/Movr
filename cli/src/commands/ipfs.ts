@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { logger } from '../utils/logger.js';
-import { ConfigService } from '../services/config.js';
-import { PinataIPFSService } from '../services/ipfs.js';
+import { logger } from '../utils/logger';
+import { ConfigService } from '../services/config';
+import { PinataIPFSService } from '../services/ipfs';
 
 export interface IPFSUploadOptions {
   path: string;

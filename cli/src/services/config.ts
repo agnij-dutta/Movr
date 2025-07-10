@@ -1,8 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
-import { logger } from '../utils/logger.js';
-import { createConfigError, createFileSystemError } from '../utils/errors.js';
+import { logger } from '../utils/logger';
+import { createConfigError, createFileSystemError } from '../utils/errors';
 
 export interface WalletConfig {
   name: string;

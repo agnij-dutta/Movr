@@ -1,16 +1,19 @@
-import chalk from 'chalk';
-import { logger } from '../utils/logger.js';
-import { AptosBlockchainService } from '../services/blockchain.js';
-import { Network } from '@aptos-labs/ts-sdk';
-import { Account } from '@aptos-labs/ts-sdk';
-export class WalletCommand {
-    config;
-    blockchain;
-    program;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WalletCommand = void 0;
+const chalk_1 = __importDefault(require("chalk"));
+const logger_1 = require("../utils/logger");
+const blockchain_1 = require("../services/blockchain");
+const ts_sdk_1 = require("@aptos-labs/ts-sdk");
+const ts_sdk_2 = require("@aptos-labs/ts-sdk");
+class WalletCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new AptosBlockchainService(config.currentNetwork || Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
         // Register command with Commander
         this.program = parentProgram
             .command('wallet')
@@ -84,7 +87,7 @@ export class WalletCommand {
             }
         }
         catch (error) {
-            logger.error('Failed to execute wallet command', { error });
+            logger_1.logger.error('Failed to execute wallet command', { error });
             throw error;
         }
     }
@@ -92,7 +95,7 @@ export class WalletCommand {
         if (!name) {
             throw new Error('Wallet name is required');
         }
-        const account = Account.generate();
+        const account = ts_sdk_2.Account.generate();
         const walletConfig = {
             name: name,
             address: account.accountAddress.toString(),
@@ -100,7 +103,7 @@ export class WalletCommand {
             isDefault: false
         };
         await this.config.addWallet(walletConfig);
-        logger.info('Wallet created successfully', {
+        logger_1.logger.info('Wallet created successfully', {
             name: walletConfig.name,
             address: walletConfig.address,
         });
@@ -114,13 +117,13 @@ export class WalletCommand {
         const wallets = this.config.getWallets();
         const defaultWallet = this.config.getDefaultWallet();
         if (wallets.length === 0) {
-            logger.info('No wallets found');
+            logger_1.logger.info('No wallets found');
             return;
         }
-        logger.info('Available wallets:');
+        logger_1.logger.info('Available wallets:');
         for (const wallet of wallets) {
             const isDefault = wallet.name === defaultWallet?.name;
-            logger.info(`${isDefault ? chalk.green('*') : ' '} ${wallet.name} (${wallet.address})`);
+            logger_1.logger.info(`${isDefault ? chalk_1.default.green('*') : ' '} ${wallet.name} (${wallet.address})`);
         }
     }
     async showWallet(name) {
@@ -138,25 +141,25 @@ export class WalletCommand {
             }
         }
         const accountInfo = await this.blockchain.getAccountInfo(wallet.address);
-        logger.info('Wallet details:');
-        logger.info(`Name: ${wallet.name}`);
-        logger.info(`Address: ${wallet.address}`);
-        logger.info(`Sequence Number: ${accountInfo.sequence_number}`);
-        logger.info(`Is Default: ${wallet.isDefault}`);
+        logger_1.logger.info('Wallet details:');
+        logger_1.logger.info(`Name: ${wallet.name}`);
+        logger_1.logger.info(`Address: ${wallet.address}`);
+        logger_1.logger.info(`Sequence Number: ${accountInfo.sequence_number}`);
+        logger_1.logger.info(`Is Default: ${wallet.isDefault}`);
     }
     async removeWallet(name) {
         if (!name) {
             throw new Error('Wallet name is required');
         }
         await this.config.removeWallet(name);
-        logger.info('Wallet removed successfully', { name });
+        logger_1.logger.info('Wallet removed successfully', { name });
     }
     async useWallet(name) {
         if (!name) {
             throw new Error('Wallet name is required');
         }
         await this.config.setDefaultWallet(name);
-        logger.info('Default wallet set successfully', { name });
+        logger_1.logger.info('Default wallet set successfully', { name });
     }
     async importWallet(name, privateKey) {
         if (!name) {
@@ -174,9 +177,10 @@ export class WalletCommand {
             isDefault: false
         };
         await this.config.addWallet(walletConfig);
-        logger.info('Wallet imported successfully', {
+        logger_1.logger.info('Wallet imported successfully', {
             name: walletConfig.name,
             address: walletConfig.address,
         });
     }
 }
+exports.WalletCommand = WalletCommand;
