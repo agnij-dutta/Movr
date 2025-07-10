@@ -44,13 +44,9 @@ export class SearchCommand {
   }
 
   async execute(options: SearchCommandOptions): Promise<void> {
-    console.log('DEBUG: Entered search execute function');
     try {
-      console.log('Searching for packages:', options.query);
-
       // Fetch all packages
       const packages = await this.blockchain.getAllPackages();
-      console.log('DEBUG: Packages fetched:', Array.isArray(packages) ? packages.length : packages);
 
       // Fuzzy search using Fuse.js
       let filteredPackages = packages;
@@ -80,7 +76,6 @@ export class SearchCommand {
 
       if (!filteredPackages || filteredPackages.length === 0) {
         console.log('No packages found matching your query');
-        console.log('DEBUG: No filtered packages found');
         return;
       }
 
@@ -91,7 +86,6 @@ export class SearchCommand {
       } else {
         await this.displaySummaryResults(filteredPackages);
       }
-      console.log('DEBUG: Finished displaying results');
 
     } catch (error) {
       console.error('Failed to search packages', error);

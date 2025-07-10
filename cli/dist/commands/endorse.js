@@ -107,15 +107,12 @@ export class EndorseCommand {
             const account = this.blockchain.createAccountFromPrivateKey(wallet.privateKey);
             // Get package info to get latest version if not specified
             const packageInfo = await this.blockchain.getPackageMetadata(options.name, options.version);
-            console.log('DEBUG: getPackageMetadata output:', packageInfo);
             if (!packageInfo) {
                 console.log(chalk.red('✗') + ` Package '${options.name}' not found.`);
                 return;
             }
-            // Debug: print the name and version to be endorsed
-            const versionToEndorse = options.version || packageInfo.version;
-            console.log('DEBUG: Endorsing package with name:', options.name, 'version:', versionToEndorse);
             // Endorse package
+            const versionToEndorse = options.version || packageInfo.version;
             const result = await this.blockchain.endorsePackage(account, options.name, versionToEndorse);
             if (result.success) {
                 console.log(chalk.green('✓') + ' Package endorsed successfully!');

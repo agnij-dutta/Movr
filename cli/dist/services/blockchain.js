@@ -99,24 +99,8 @@ export class AptosBlockchainService {
                 version: metadata.version,
                 ipfsHash: metadata.ipfsHash,
             });
-            console.log('DEBUG: publishPackage args:', {
-                name: metadata.name,
-                version: metadata.version,
-                ipfsHash: metadata.ipfsHash,
-                package_type: 1,
-                tags: metadata.tags,
-                description: metadata.description,
-            });
             // Ensure tags is always an array of MoveString
             const tags = Array.isArray(metadata.tags) ? metadata.tags.map(tag => new MoveString(String(tag))) : [];
-            // Enhanced debug logging for all arguments
-            console.log('DEBUG: publishPackage argument details:');
-            console.log('  name:', metadata.name, '| type:', typeof metadata.name, '| length:', typeof metadata.name === 'string' ? metadata.name.length : 'N/A');
-            console.log('  version:', metadata.version, '| type:', typeof metadata.version, '| length:', typeof metadata.version === 'string' ? metadata.version.length : 'N/A');
-            console.log('  ipfsHash:', metadata.ipfsHash, '| type:', typeof metadata.ipfsHash, '| length:', typeof metadata.ipfsHash === 'string' ? metadata.ipfsHash.length : 'N/A');
-            console.log('  package_type:', 0, '| type:', typeof 0);
-            console.log('  tags:', tags, '| type:', Array.isArray(tags) ? 'array' : typeof tags, '| length:', tags.length);
-            console.log('  description:', metadata.description, '| type:', typeof metadata.description, '| length:', typeof metadata.description === 'string' ? metadata.description.length : 'N/A');
             // Build function arguments in the exact order as the Move ABI, wrapping all strings in MoveString
             const functionArguments = [
                 new MoveString(metadata.name),
@@ -126,12 +110,6 @@ export class AptosBlockchainService {
                 tags,
                 new MoveString(metadata.description || ''),
             ];
-            // --- DEBUG LOGGING ---
-            console.log('DEBUG: functionArguments:', functionArguments);
-            functionArguments.forEach((arg, i) => {
-                console.log(`Arg ${i}:`, arg, '| type:', Array.isArray(arg) ? 'array' : typeof arg, '| length:', typeof arg === 'string' ? arg : Array.isArray(arg) ? Array.prototype.slice.call(arg).length : 'N/A');
-            });
-            // --- END DEBUG LOGGING ---
             const transaction = await this.aptos.transaction.build.simple({
                 sender: signer.accountAddress,
                 data: {

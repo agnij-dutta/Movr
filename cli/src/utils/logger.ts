@@ -49,7 +49,7 @@ const transports = [
   // Console transport
   new winston.transports.Console({
     format: consoleFormat,
-    level: process.env['NODE_ENV'] === 'production' ? 'warn' : 'debug',
+    level: 'warn', // Only show warnings and errors in CLI
   }),
   
   // Error log file
@@ -72,7 +72,7 @@ const transports = [
 
 // Create logger instance
 export const logger = winston.createLogger({
-  level: process.env['NODE_ENV'] === 'production' ? 'warn' : 'debug',
+  level: 'warn', // Only show warnings and errors in CLI
   levels,
   format: fileFormat,
   transports,
