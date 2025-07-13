@@ -25,7 +25,7 @@ export class SearchCommand {
     this.config = configService;
     const config = this.config.getConfig();
     this.blockchain = new AptosBlockchainService(
-      (config.currentNetwork as Network) || Network.DEVNET
+      (config.currentNetwork as Network) || Network.TESTNET
     );
 
     // Register command with Commander
@@ -45,6 +45,8 @@ export class SearchCommand {
 
   async execute(options: SearchCommandOptions): Promise<void> {
     try {
+      console.log(chalk.gray('🔍 Searching packages...'));
+      
       // Fetch all packages
       const packages = await this.blockchain.getAllPackages();
 
@@ -75,11 +77,16 @@ export class SearchCommand {
       }
 
       if (!filteredPackages || filteredPackages.length === 0) {
-        console.log('No packages found matching your query');
+        if (options.query) {
+          console.log(chalk.yellow(`No packages found matching "${options.query}"`));
+        } else {
+          console.log(chalk.yellow('No packages found'));
+        }
+        console.log(chalk.gray('Try different search terms or check if packages exist on the network.'));
         return;
       }
 
-      console.log(`Found ${filteredPackages.length} packages:`);
+      console.log(chalk.green(`✅ Found ${filteredPackages.length} package${filteredPackages.length === 1 ? '' : 's'}:`));
 
       if (options.details) {
         await this.displayDetailedResults(filteredPackages);
@@ -88,7 +95,8 @@ export class SearchCommand {
       }
 
     } catch (error) {
-      console.error('Failed to search packages', error);
+      console.log(chalk.red('✗ Failed to search packages'));
+      logger.error('Failed to search packages', { error });
       throw error;
     }
   }

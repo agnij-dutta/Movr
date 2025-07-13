@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchCommand = void 0;
 const chalk_1 = __importDefault(require("chalk"));
+const logger_1 = require("../utils/logger");
 const blockchain_1 = require("../services/blockchain");
 const ts_sdk_1 = require("@aptos-labs/ts-sdk");
 const types_1 = require("../services/types");
@@ -13,7 +14,7 @@ class SearchCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
         // Register command with Commander
         this.program = parentProgram
             .command('search')
@@ -30,6 +31,7 @@ class SearchCommand {
     }
     async execute(options) {
         try {
+            console.log(chalk_1.default.gray('🔍 Searching packages...'));
             // Fetch all packages
             const packages = await this.blockchain.getAllPackages();
             // Fuzzy search using Fuse.js
@@ -53,10 +55,16 @@ class SearchCommand {
                 filteredPackages = filteredPackages.slice(0, options.limit);
             }
             if (!filteredPackages || filteredPackages.length === 0) {
-                console.log('No packages found matching your query');
+                if (options.query) {
+                    console.log(chalk_1.default.yellow(`No packages found matching "${options.query}"`));
+                }
+                else {
+                    console.log(chalk_1.default.yellow('No packages found'));
+                }
+                console.log(chalk_1.default.gray('Try different search terms or check if packages exist on the network.'));
                 return;
             }
-            console.log(`Found ${filteredPackages.length} packages:`);
+            console.log(chalk_1.default.green(`✅ Found ${filteredPackages.length} package${filteredPackages.length === 1 ? '' : 's'}:`));
             if (options.details) {
                 await this.displayDetailedResults(filteredPackages);
             }
@@ -65,7 +73,8 @@ class SearchCommand {
             }
         }
         catch (error) {
-            console.error('Failed to search packages', error);
+            console.log(chalk_1.default.red('✗ Failed to search packages'));
+            logger_1.logger.error('Failed to search packages', { error });
             throw error;
         }
     }

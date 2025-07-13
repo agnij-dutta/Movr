@@ -39,6 +39,7 @@ export class InitCommand {
       .option('-d, --description <description>', 'Package description')
       .option('-t, --template <template>', 'Package template (basic, token, defi)', 'basic')
       .option('--wallet <name>', 'Wallet to use for registry initialization')
+      .option('--treasury <address>', 'Treasury address for registry')
       .action(async (directory, options) => {
         if (directory === 'registry') {
           await this.executeRegistryInit(options);
@@ -109,10 +110,17 @@ export class InitCommand {
         throw new Error('No wallet configured or private key missing. Run `movr wallet create` first');
       }
 
+      // Require treasury address
+      if (!options.treasury) {
+        console.log(chalk.red('✗ Treasury address is required. Use --treasury <address>'));
+        return;
+      }
+      const treasuryAddress = options.treasury;
+
       // Initialize blockchain service
       const config = this.config.getConfig();
       const blockchain = new AptosBlockchainService(
-        (config.currentNetwork as Network) || Network.DEVNET
+        (config.currentNetwork as Network) || Network.TESTNET
       );
 
       // Create account from private key
@@ -120,6 +128,7 @@ export class InitCommand {
 
       console.log(chalk.blue('Initializing movr registry...'));
       console.log(chalk.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
+      console.log(chalk.gray(`Treasury address: ${treasuryAddress}`));
 
       // Get contract address from config
       const contractAddress = this.config.getRegistryContract();
@@ -129,7 +138,7 @@ export class InitCommand {
         sender: account.accountAddress,
         data: {
           function: `${contractAddress}::registry::initialize_registry`,
-          functionArguments: [],
+          functionArguments: [treasuryAddress],
         },
       });
 

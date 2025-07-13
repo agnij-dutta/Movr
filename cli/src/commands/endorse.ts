@@ -24,7 +24,7 @@ export class EndorseCommand {
     this.config = configService;
     const config = this.config.getConfig();
     this.blockchain = new AptosBlockchainService(
-      (config.currentNetwork as Network) || Network.DEVNET
+      (config.currentNetwork as Network) || Network.TESTNET
     );
 
     // Register command with Commander

@@ -84,4 +84,16 @@ export const loggerStream = {
   write: (message: string) => {
     logger.http(message.substring(0, message.lastIndexOf('\n')));
   },
+};
+
+// Function to enable verbose logging
+export const setVerboseLogging = (enabled: boolean) => {
+  const level = enabled ? 'debug' : 'warn';
+  logger.level = level;
+  
+  // Update console transport level
+  const consoleTransport = logger.transports.find(t => t instanceof winston.transports.Console);
+  if (consoleTransport) {
+    consoleTransport.level = level;
+  }
 }; 

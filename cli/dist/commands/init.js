@@ -25,6 +25,7 @@ class InitCommand {
             .option('-d, --description <description>', 'Package description')
             .option('-t, --template <template>', 'Package template (basic, token, defi)', 'basic')
             .option('--wallet <name>', 'Wallet to use for registry initialization')
+            .option('--treasury <address>', 'Treasury address for registry')
             .action(async (directory, options) => {
             if (directory === 'registry') {
                 await this.executeRegistryInit(options);
@@ -87,13 +88,20 @@ class InitCommand {
             if (!walletConfig || !walletConfig.privateKey) {
                 throw new Error('No wallet configured or private key missing. Run `movr wallet create` first');
             }
+            // Require treasury address
+            if (!options.treasury) {
+                console.log(chalk_1.default.red('✗ Treasury address is required. Use --treasury <address>'));
+                return;
+            }
+            const treasuryAddress = options.treasury;
             // Initialize blockchain service
             const config = this.config.getConfig();
-            const blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+            const blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
             // Create account from private key
             const account = blockchain.createAccountFromPrivateKey(walletConfig.privateKey);
             console.log(chalk_1.default.blue('Initializing movr registry...'));
             console.log(chalk_1.default.gray(`Using wallet: ${walletConfig.name} (${walletConfig.address})`));
+            console.log(chalk_1.default.gray(`Treasury address: ${treasuryAddress}`));
             // Get contract address from config
             const contractAddress = this.config.getRegistryContract();
             // Call the registry initialization function
@@ -101,7 +109,7 @@ class InitCommand {
                 sender: account.accountAddress,
                 data: {
                     function: `${contractAddress}::registry::initialize_registry`,
-                    functionArguments: [],
+                    functionArguments: [treasuryAddress],
                 },
             });
             const senderAuthenticator = blockchain['aptos'].transaction.sign({

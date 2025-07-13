@@ -11,8 +11,8 @@ const path_1 = __importDefault(require("path"));
 const archiver_1 = __importDefault(require("archiver"));
 const extract_zip_1 = __importDefault(require("extract-zip"));
 const fs_1 = require("fs");
-const logger_1 = require("../utils/logger");
-const errors_1 = require("../utils/errors");
+const logger_js_1 = require("../utils/logger.js");
+const errors_js_1 = require("../utils/errors.js");
 const pinata_1 = require("pinata");
 class PinataIPFSService {
     constructor(config) {
@@ -22,7 +22,7 @@ class PinataIPFSService {
                 pinataJwt: config.jwt,
                 pinataGateway: config.gatewayUrl,
             });
-            logger_1.logger.info('Using Pinata SDK with JWT for authentication');
+            logger_js_1.logger.info('Using Pinata SDK with JWT for authentication');
         }
         else {
             this.client = axios_1.default.create({
@@ -33,9 +33,9 @@ class PinataIPFSService {
                     'pinata_secret_api_key': config.secretKey,
                 },
             });
-            logger_1.logger.info('Using Pinata API key/secret for authentication');
+            logger_js_1.logger.info('Using Pinata API key/secret for authentication');
         }
-        logger_1.logger.info('IPFS service initialized', {
+        logger_js_1.logger.info('IPFS service initialized', {
             gatewayUrl: config.gatewayUrl,
         });
     }
@@ -44,7 +44,7 @@ class PinataIPFSService {
      */
     async uploadDirectory(directoryPath, metadata) {
         try {
-            logger_1.logger.info('Uploading directory to IPFS', { directoryPath });
+            logger_js_1.logger.info('Uploading directory to IPFS', { directoryPath });
             // Create a zip archive of the directory
             const tempZipPath = path_1.default.join(process.cwd(), 'temp', `upload-${Date.now()}.zip`);
             await fs_extra_1.default.ensureDir(path_1.default.dirname(tempZipPath));
@@ -56,55 +56,79 @@ class PinataIPFSService {
             });
             // Clean up temp file
             await fs_extra_1.default.remove(tempZipPath);
-            logger_1.logger.info('Directory uploaded successfully', {
+            logger_js_1.logger.info('Directory uploaded successfully', {
                 directoryPath,
                 ipfsHash: result.ipfsHash,
             });
             return result;
         }
         catch (error) {
-            logger_1.logger.error('Failed to upload directory', { directoryPath, error });
-            throw (0, errors_1.createIPFSError)(`Failed to upload directory: ${error instanceof Error ? error.message : 'Unknown error'}`, { directoryPath });
+            logger_js_1.logger.error('Failed to upload directory', { directoryPath, error });
+            throw (0, errors_js_1.createIPFSError)(`Failed to upload directory: ${error instanceof Error ? error.message : 'Unknown error'}`, { directoryPath });
         }
     }
     /**
      * Upload a single file to IPFS
      */
     async uploadFile(filePath, metadata) {
-        // Always use form-data approach for pkg compatibility
-        try {
-            logger_1.logger.debug('Uploading file to IPFS', { filePath });
-            const formData = new form_data_1.default();
-            const fileStream = (0, fs_1.createReadStream)(filePath);
-            const fileName = path_1.default.basename(filePath);
-            formData.append('file', fileStream, fileName);
-            if (metadata) {
-                formData.append('pinataMetadata', JSON.stringify({
-                    name: metadata['name'] || 'json-content',
-                    keyvalues: metadata,
-                }));
+        if (this.pinata) {
+            // Use Pinata SDK
+            try {
+                logger_js_1.logger.debug('Uploading file to IPFS via Pinata SDK', { filePath });
+                const fileBuffer = await fs_extra_1.default.readFile(filePath);
+                // Create a Blob-like object that Pinata SDK can accept
+                const file = new Blob([fileBuffer], { type: 'application/octet-stream' });
+                // Add the name property manually
+                file.name = path_1.default.basename(filePath);
+                const upload = await this.pinata.upload.public.file(file);
+                // Pinata SDK returns { cid, size, ... }
+                return {
+                    ipfsHash: upload.cid,
+                    pinSize: upload.size || fileBuffer.length,
+                    timestamp: new Date().toISOString(),
+                };
             }
-            const response = await this.client.post('/pinning/pinFileToIPFS', formData, {
-                headers: {
-                    ...formData.getHeaders(),
-                },
-                maxContentLength: Infinity,
-                maxBodyLength: Infinity,
-            });
-            const result = {
-                ipfsHash: response.data.IpfsHash,
-                pinSize: response.data.PinSize,
-                timestamp: response.data.Timestamp,
-            };
-            logger_1.logger.debug('File uploaded successfully', {
-                filePath,
-                ipfsHash: result.ipfsHash,
-            });
-            return result;
+            catch (error) {
+                logger_js_1.logger.error('Failed to upload file via Pinata SDK', { filePath, error });
+                throw (0, errors_js_1.createIPFSError)(`Failed to upload file via Pinata SDK: ${error instanceof Error ? error.message : 'Unknown error'}`, { filePath });
+            }
         }
-        catch (error) {
-            logger_1.logger.error('Failed to upload file', { filePath, error });
-            throw (0, errors_1.createIPFSError)(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`, { filePath });
+        else {
+            // Fallback to legacy Axios method
+            try {
+                logger_js_1.logger.debug('Uploading file to IPFS (legacy)', { filePath });
+                const formData = new form_data_1.default();
+                const fileStream = (0, fs_1.createReadStream)(filePath);
+                const fileName = path_1.default.basename(filePath);
+                formData.append('file', fileStream, fileName);
+                if (metadata) {
+                    formData.append('pinataMetadata', JSON.stringify({
+                        name: metadata['name'] || 'json-content',
+                        keyvalues: metadata,
+                    }));
+                }
+                const response = await this.client.post('/pinning/pinFileToIPFS', formData, {
+                    headers: {
+                        ...formData.getHeaders(),
+                    },
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                });
+                const result = {
+                    ipfsHash: response.data.IpfsHash,
+                    pinSize: response.data.PinSize,
+                    timestamp: response.data.Timestamp,
+                };
+                logger_js_1.logger.debug('File uploaded successfully', {
+                    filePath,
+                    ipfsHash: result.ipfsHash,
+                });
+                return result;
+            }
+            catch (error) {
+                logger_js_1.logger.error('Failed to upload file', { filePath, error });
+                throw (0, errors_js_1.createIPFSError)(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`, { filePath });
+            }
         }
     }
     /**
@@ -112,7 +136,7 @@ class PinataIPFSService {
      */
     async downloadFile(ipfsHash, outputPath) {
         try {
-            logger_1.logger.info('Downloading file from IPFS', { ipfsHash, outputPath });
+            logger_js_1.logger.info('Downloading file from IPFS', { ipfsHash, outputPath });
             const url = `https://${this.config.gatewayUrl}/ipfs/${ipfsHash}`;
             const response = await axios_1.default.get(url, {
                 responseType: 'stream',
@@ -125,11 +149,11 @@ class PinataIPFSService {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
-            logger_1.logger.info('File downloaded successfully', { ipfsHash, outputPath });
+            logger_js_1.logger.info('File downloaded successfully', { ipfsHash, outputPath });
         }
         catch (error) {
-            logger_1.logger.error('Failed to download file', { ipfsHash, outputPath, error });
-            throw (0, errors_1.createIPFSError)(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash, outputPath });
+            logger_js_1.logger.error('Failed to download file', { ipfsHash, outputPath, error });
+            throw (0, errors_js_1.createIPFSError)(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash, outputPath });
         }
     }
     /**
@@ -137,7 +161,7 @@ class PinataIPFSService {
      */
     async downloadPackage(ipfsHash, extractPath) {
         try {
-            logger_1.logger.info('Downloading and extracting package', { ipfsHash, extractPath });
+            logger_js_1.logger.info('Downloading and extracting package', { ipfsHash, extractPath });
             const tempZipPath = path_1.default.join(process.cwd(), 'temp', `download-${Date.now()}.zip`);
             await fs_extra_1.default.ensureDir(path_1.default.dirname(tempZipPath));
             // Download the zip file
@@ -147,14 +171,14 @@ class PinataIPFSService {
             await (0, extract_zip_1.default)(tempZipPath, { dir: path_1.default.resolve(extractPath) });
             // Clean up temp file
             await fs_extra_1.default.remove(tempZipPath);
-            logger_1.logger.info('Package downloaded and extracted successfully', {
+            logger_js_1.logger.info('Package downloaded and extracted successfully', {
                 ipfsHash,
                 extractPath,
             });
         }
         catch (error) {
-            logger_1.logger.error('Failed to download package', { ipfsHash, extractPath, error });
-            throw (0, errors_1.createIPFSError)(`Failed to download package: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash, extractPath });
+            logger_js_1.logger.error('Failed to download package', { ipfsHash, extractPath, error });
+            throw (0, errors_js_1.createIPFSError)(`Failed to download package: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash, extractPath });
         }
     }
     /**
@@ -162,7 +186,7 @@ class PinataIPFSService {
      */
     async getFileContent(ipfsHash) {
         try {
-            logger_1.logger.debug('Getting file content from IPFS', { ipfsHash });
+            logger_js_1.logger.debug('Getting file content from IPFS', { ipfsHash });
             const url = `https://${this.config.gatewayUrl}/ipfs/${ipfsHash}`;
             const response = await axios_1.default.get(url, {
                 timeout: 30000,
@@ -170,8 +194,8 @@ class PinataIPFSService {
             return response.data;
         }
         catch (error) {
-            logger_1.logger.error('Failed to get file content', { ipfsHash, error });
-            throw (0, errors_1.createIPFSError)(`Failed to get file content: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash });
+            logger_js_1.logger.error('Failed to get file content', { ipfsHash, error });
+            throw (0, errors_js_1.createIPFSError)(`Failed to get file content: ${error instanceof Error ? error.message : 'Unknown error'}`, { ipfsHash });
         }
     }
     /**
@@ -179,7 +203,7 @@ class PinataIPFSService {
      */
     async pinJSON(content, metadata) {
         try {
-            logger_1.logger.debug('Pinning JSON to IPFS', { contentKeys: Object.keys(content) });
+            logger_js_1.logger.debug('Pinning JSON to IPFS', { contentKeys: Object.keys(content) });
             const data = {
                 pinataContent: content,
                 ...(metadata && {
@@ -195,12 +219,12 @@ class PinataIPFSService {
                 pinSize: response.data.PinSize,
                 timestamp: response.data.Timestamp,
             };
-            logger_1.logger.debug('JSON pinned successfully', { ipfsHash: result.ipfsHash });
+            logger_js_1.logger.debug('JSON pinned successfully', { ipfsHash: result.ipfsHash });
             return result;
         }
         catch (error) {
-            logger_1.logger.error('Failed to pin JSON', { error });
-            throw (0, errors_1.createIPFSError)(`Failed to pin JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger_js_1.logger.error('Failed to pin JSON', { error });
+            throw (0, errors_js_1.createIPFSError)(`Failed to pin JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
     /**
@@ -208,14 +232,14 @@ class PinataIPFSService {
      */
     async testConnection() {
         try {
-            logger_1.logger.debug('Testing Pinata connection');
+            logger_js_1.logger.debug('Testing Pinata connection');
             const response = await this.client.get('/data/testAuthentication');
             const isAuthenticated = response.data.message === 'Congratulations! You are communicating with the Pinata API!';
-            logger_1.logger.info('Pinata connection test', { authenticated: isAuthenticated });
+            logger_js_1.logger.info('Pinata connection test', { authenticated: isAuthenticated });
             return isAuthenticated;
         }
         catch (error) {
-            logger_1.logger.error('Pinata connection test failed', { error });
+            logger_js_1.logger.error('Pinata connection test failed', { error });
             return false;
         }
     }
@@ -228,7 +252,7 @@ class PinataIPFSService {
                 const output = (0, fs_1.createWriteStream)(outputPath);
                 const archive = (0, archiver_1.default)('zip', { zlib: { level: 9 } });
                 output.on('close', () => {
-                    logger_1.logger.debug('Zip archive created', {
+                    logger_js_1.logger.debug('Zip archive created', {
                         sourceDir,
                         outputPath,
                         size: archive.pointer(),
@@ -236,15 +260,15 @@ class PinataIPFSService {
                     resolve();
                 });
                 archive.on('error', (error) => {
-                    logger_1.logger.error('Failed to create zip archive', { error });
-                    reject((0, errors_1.createFileSystemError)(`Failed to create zip archive: ${error.message}`));
+                    logger_js_1.logger.error('Failed to create zip archive', { error });
+                    reject((0, errors_js_1.createFileSystemError)(`Failed to create zip archive: ${error.message}`));
                 });
                 archive.pipe(output);
                 archive.directory(sourceDir, false);
                 archive.finalize();
             }
             catch (error) {
-                reject((0, errors_1.createFileSystemError)(`Failed to create zip archive: ${error instanceof Error ? error.message : 'Unknown error'}`));
+                reject((0, errors_js_1.createFileSystemError)(`Failed to create zip archive: ${error instanceof Error ? error.message : 'Unknown error'}`));
             }
         });
     }

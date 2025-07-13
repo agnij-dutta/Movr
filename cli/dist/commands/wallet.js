@@ -13,7 +13,7 @@ class WalletCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
         // Register command with Commander
         this.program = parentProgram
             .command('wallet')
@@ -103,27 +103,40 @@ class WalletCommand {
             isDefault: false
         };
         await this.config.addWallet(walletConfig);
+        console.log(chalk_1.default.green('✅ Wallet created successfully!'));
+        console.log(chalk_1.default.gray(`Name: ${walletConfig.name}`));
+        console.log(chalk_1.default.gray(`Address: ${walletConfig.address}`));
         logger_1.logger.info('Wallet created successfully', {
             name: walletConfig.name,
             address: walletConfig.address,
         });
-        // Fund the account on testnet/devnet
+        // Fund the account on testnet
         const currentNetwork = this.config.getCurrentNetwork();
         if (currentNetwork.name !== 'mainnet') {
-            await this.blockchain.fundAccount(walletConfig.address);
+            console.log(chalk_1.default.yellow('🔄 Funding wallet on testnet...'));
+            try {
+                await this.blockchain.fundAccount(walletConfig.address);
+                console.log(chalk_1.default.green('✅ Wallet funded successfully!'));
+            }
+            catch (error) {
+                console.log(chalk_1.default.yellow('⚠️  Failed to auto-fund wallet. You may need to fund it manually.'));
+                console.log(chalk_1.default.gray(`Fund command: aptos account fund-with-faucet --account ${walletConfig.address}`));
+            }
         }
     }
     async listWallets() {
         const wallets = this.config.getWallets();
         const defaultWallet = this.config.getDefaultWallet();
         if (wallets.length === 0) {
-            logger_1.logger.info('No wallets found');
+            console.log(chalk_1.default.yellow('No wallets found. Create one with: movr wallet create <name>'));
             return;
         }
-        logger_1.logger.info('Available wallets:');
+        console.log(chalk_1.default.cyan('Available wallets:'));
         for (const wallet of wallets) {
             const isDefault = wallet.name === defaultWallet?.name;
-            logger_1.logger.info(`${isDefault ? chalk_1.default.green('*') : ' '} ${wallet.name} (${wallet.address})`);
+            const prefix = isDefault ? chalk_1.default.green('* ') : '  ';
+            const status = isDefault ? chalk_1.default.green(' (default)') : '';
+            console.log(`${prefix}${chalk_1.default.white(wallet.name)} ${chalk_1.default.gray(`(${wallet.address})`)}${status}`);
         }
     }
     async showWallet(name) {
@@ -131,34 +144,59 @@ class WalletCommand {
         if (name) {
             wallet = this.config.getWallet(name);
             if (!wallet) {
-                throw new Error(`Wallet '${name}' not found`);
+                console.log(chalk_1.default.red(`✗ Wallet '${name}' not found`));
+                return;
             }
         }
         else {
             wallet = this.config.getDefaultWallet();
             if (!wallet) {
-                throw new Error('No default wallet found');
+                console.log(chalk_1.default.red('✗ No default wallet found. Create one with: movr wallet create <name>'));
+                return;
             }
         }
-        const accountInfo = await this.blockchain.getAccountInfo(wallet.address);
-        logger_1.logger.info('Wallet details:');
-        logger_1.logger.info(`Name: ${wallet.name}`);
-        logger_1.logger.info(`Address: ${wallet.address}`);
-        logger_1.logger.info(`Sequence Number: ${accountInfo.sequence_number}`);
-        logger_1.logger.info(`Is Default: ${wallet.isDefault}`);
+        console.log(chalk_1.default.cyan('Wallet Details:'));
+        console.log(`  Name: ${chalk_1.default.white(wallet.name)}`);
+        console.log(`  Address: ${chalk_1.default.gray(wallet.address)}`);
+        console.log(`  Default: ${wallet.isDefault ? chalk_1.default.green('Yes') : chalk_1.default.gray('No')}`);
+        console.log(`  Network: ${chalk_1.default.yellow(this.config.getCurrentNetwork().name)}`);
+        try {
+            const accountInfo = await this.blockchain.getAccountInfo(wallet.address);
+            const balance = await this.blockchain.getAccountBalance(wallet.address);
+            const aptBalance = this.blockchain.formatToAPT(balance);
+            console.log(`  Balance: ${chalk_1.default.green(aptBalance)} APT`);
+            console.log(`  Sequence: ${chalk_1.default.gray(accountInfo.sequence_number)}`);
+        }
+        catch (error) {
+            console.log(chalk_1.default.yellow('  ⚠️  Could not fetch account info (account may not exist on-chain)'));
+        }
     }
     async removeWallet(name) {
         if (!name) {
             throw new Error('Wallet name is required');
         }
+        // Check if wallet exists
+        const wallet = this.config.getWallet(name);
+        if (!wallet) {
+            console.log(chalk_1.default.red(`✗ Wallet '${name}' not found`));
+            return;
+        }
         await this.config.removeWallet(name);
+        console.log(chalk_1.default.green(`✅ Wallet '${name}' removed successfully`));
         logger_1.logger.info('Wallet removed successfully', { name });
     }
     async useWallet(name) {
         if (!name) {
             throw new Error('Wallet name is required');
         }
+        // Check if wallet exists
+        const wallet = this.config.getWallet(name);
+        if (!wallet) {
+            console.log(chalk_1.default.red(`✗ Wallet '${name}' not found`));
+            return;
+        }
         await this.config.setDefaultWallet(name);
+        console.log(chalk_1.default.green(`✅ Default wallet set to '${name}'`));
         logger_1.logger.info('Default wallet set successfully', { name });
     }
     async importWallet(name, privateKey) {
@@ -168,19 +206,28 @@ class WalletCommand {
         if (!privateKey) {
             throw new Error('Private key is required');
         }
-        // Use blockchain service to create account from private key
-        const account = this.blockchain.createAccountFromPrivateKey(privateKey);
-        const walletConfig = {
-            name: name,
-            address: account.accountAddress.toString(),
-            privateKey: privateKey,
-            isDefault: false
-        };
-        await this.config.addWallet(walletConfig);
-        logger_1.logger.info('Wallet imported successfully', {
-            name: walletConfig.name,
-            address: walletConfig.address,
-        });
+        try {
+            // Use blockchain service to create account from private key
+            const account = this.blockchain.createAccountFromPrivateKey(privateKey);
+            const walletConfig = {
+                name: name,
+                address: account.accountAddress.toString(),
+                privateKey: privateKey,
+                isDefault: false
+            };
+            await this.config.addWallet(walletConfig);
+            console.log(chalk_1.default.green('✅ Wallet imported successfully!'));
+            console.log(chalk_1.default.gray(`Name: ${walletConfig.name}`));
+            console.log(chalk_1.default.gray(`Address: ${walletConfig.address}`));
+            logger_1.logger.info('Wallet imported successfully', {
+                name: walletConfig.name,
+                address: walletConfig.address,
+            });
+        }
+        catch (error) {
+            console.log(chalk_1.default.red('✗ Failed to import wallet. Please check your private key format.'));
+            throw error;
+        }
     }
 }
 exports.WalletCommand = WalletCommand;

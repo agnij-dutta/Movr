@@ -4,8 +4,8 @@ exports.createInvalidPackageError = exports.createPackageNotFoundError = exports
 const logger_1 = require("./logger");
 var ErrorType;
 (function (ErrorType) {
+    ErrorType["PROGRAMMING"] = "PROGRAMMING";
     ErrorType["OPERATIONAL"] = "OPERATIONAL";
-    ErrorType["PROGRAMMER"] = "PROGRAMMER";
 })(ErrorType || (exports.ErrorType = ErrorType = {}));
 var ErrorCode;
 (function (ErrorCode) {
@@ -90,6 +90,8 @@ class ErrorHandler {
     async handleError(error) {
         await this.logError(error);
         await this.fireMonitoringMetric(error);
+        // Provide user-friendly feedback
+        this.displayUserFriendlyError(error);
         if (!this.isTrustedError(error)) {
             // For programmer errors, we might want to crash the process
             // But for CLI tools, we typically want to show error and exit gracefully
@@ -101,6 +103,49 @@ class ErrorHandler {
             return error.isOperational;
         }
         return false;
+    }
+    displayUserFriendlyError(error) {
+        const chalk = require('chalk');
+        if (error instanceof AppError) {
+            switch (error.code) {
+                case ErrorCode.NETWORK_ERROR:
+                    console.log(chalk.red('✗ Network connection failed. Please check your internet connection and try again.'));
+                    break;
+                case ErrorCode.BLOCKCHAIN_ERROR:
+                    console.log(chalk.red('✗ Blockchain operation failed. Please check your wallet and network configuration.'));
+                    break;
+                case ErrorCode.IPFS_ERROR:
+                    console.log(chalk.red('✗ IPFS operation failed. Please check your IPFS configuration and try again.'));
+                    break;
+                case ErrorCode.CONFIG_ERROR:
+                    console.log(chalk.red('✗ Configuration error. Please check your movr configuration.'));
+                    break;
+                case ErrorCode.FILE_SYSTEM_ERROR:
+                    console.log(chalk.red('✗ File system error. Please check file permissions and paths.'));
+                    break;
+                case ErrorCode.VALIDATION_ERROR:
+                    console.log(chalk.red('✗ Validation error. Please check your input parameters.'));
+                    break;
+                case ErrorCode.AUTHENTICATION_ERROR:
+                    console.log(chalk.red('✗ Authentication failed. Please check your wallet configuration.'));
+                    break;
+                case ErrorCode.PACKAGE_NOT_FOUND:
+                    console.log(chalk.red('✗ Package not found. Please check the package name and version.'));
+                    break;
+                case ErrorCode.INVALID_PACKAGE:
+                    console.log(chalk.red('✗ Invalid package. Please check the package structure and configuration.'));
+                    break;
+                default:
+                    console.log(chalk.red(`✗ Operation failed: ${error.message}`));
+            }
+            // Show context if helpful for user
+            if (error.context && error.context.userMessage) {
+                console.log(chalk.gray(`   ${error.context.userMessage}`));
+            }
+        }
+        else {
+            console.log(chalk.red(`✗ Unexpected error: ${error.message}`));
+        }
     }
     async logError(error) {
         try {

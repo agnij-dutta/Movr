@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loggerStream = exports.logger = void 0;
+exports.setVerboseLogging = exports.loggerStream = exports.logger = void 0;
 const winston_1 = __importDefault(require("winston"));
 const path_1 = require("path");
 const fs_1 = require("fs");
@@ -70,3 +70,14 @@ exports.loggerStream = {
         exports.logger.http(message.substring(0, message.lastIndexOf('\n')));
     },
 };
+// Function to enable verbose logging
+const setVerboseLogging = (enabled) => {
+    const level = enabled ? 'debug' : 'warn';
+    exports.logger.level = level;
+    // Update console transport level
+    const consoleTransport = exports.logger.transports.find(t => t instanceof winston_1.default.transports.Console);
+    if (consoleTransport) {
+        consoleTransport.level = level;
+    }
+};
+exports.setVerboseLogging = setVerboseLogging;

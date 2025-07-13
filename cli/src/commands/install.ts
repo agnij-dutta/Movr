@@ -25,7 +25,7 @@ export class InstallCommand {
     this.config = configService;
     const config = this.config.getConfig();
     this.blockchain = new AptosBlockchainService(
-      (config.currentNetwork as Network) || Network.DEVNET
+      (config.currentNetwork as Network) || Network.TESTNET
     );
     // PinataIPFSService now supports JWT authentication if present in config
     this.ipfs = new PinataIPFSService(config.ipfs);
@@ -45,17 +45,29 @@ export class InstallCommand {
 
   async execute(options: InstallCommandOptions): Promise<void> {
     try {
+      console.log(chalk.gray(`📦 Installing package '${options.name}'...`));
+      
       logger.info('Installing package', { name: options.name });
 
       // Get package metadata
+      console.log(chalk.gray('🔍 Fetching package metadata...'));
       const packageInfo = await this.blockchain.getPackageMetadata(
         options.name,
         options.version
       );
 
       if (!packageInfo) {
-        console.log(chalk.red('✗') + ` Package '${options.name}' not found.`);
+        console.log(chalk.red(`✗ Package '${options.name}' not found`));
+        if (options.version) {
+          console.log(chalk.gray(`   Version '${options.version}' does not exist`));
+        }
+        console.log(chalk.gray('   Use "movr search" to find available packages'));
         return;
+      }
+
+      console.log(chalk.green(`✅ Found package: ${packageInfo.name} v${packageInfo.version}`));
+      if (packageInfo.description) {
+        console.log(chalk.gray(`   ${packageInfo.description}`));
       }
 
       // Create output directory if it doesn't exist
@@ -63,24 +75,34 @@ export class InstallCommand {
       await fs.ensureDir(outputDir);
 
       // Download and extract package from IPFS
+      console.log(chalk.gray('📥 Downloading package from IPFS...'));
       logger.info('Downloading package from IPFS...', { ipfsHash: packageInfo.ipfsHash });
+      
       try {
         await this.ipfs.downloadPackage(packageInfo.ipfsHash, outputDir);
+        
+        console.log(chalk.green(`✅ Package '${options.name}' installed successfully!`));
+        console.log(chalk.gray(`   Location: ${outputDir}`));
+        console.log(chalk.gray(`   IPFS hash: ${packageInfo.ipfsHash}`));
+        
+        // Show additional info if available
+        if (packageInfo.endorsements && packageInfo.endorsements.length > 0) {
+          console.log(chalk.gray(`   Endorsements: ${packageInfo.endorsements.length}`));
+        }
+        
       } catch (ipfsError) {
-        console.log(chalk.red('✗') + ' Failed to download package from IPFS.');
+        console.log(chalk.red('✗ Failed to download package from IPFS'));
+        console.log(chalk.gray('   This could be due to network issues or package unavailability'));
+        console.log(chalk.gray(`   IPFS hash: ${packageInfo.ipfsHash}`));
         logger.error('Failed to download package from IPFS', { ipfsHash: packageInfo.ipfsHash, error: ipfsError });
         return;
       }
 
-      console.log(chalk.green('✓') + ` Package '${options.name}' installed successfully!`);
-      console.log(chalk.gray('Location:'), chalk.gray(outputDir));
-      console.log(chalk.gray('IPFS hash:'), chalk.gray(packageInfo.ipfsHash));
-
     } catch (error) {
+      console.log(chalk.red(`✗ Failed to install package '${options.name}'`));
       logger.error('Failed to install package', { error });
-      console.log(chalk.red('✗') + ' Failed to install package.');
       if (error instanceof Error) {
-        console.log(chalk.red(error.message));
+        console.log(chalk.gray(`   ${error.message}`));
       }
     }
   }

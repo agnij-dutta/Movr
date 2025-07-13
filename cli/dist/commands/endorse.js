@@ -46,7 +46,7 @@ class EndorseCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
         // Register command with Commander
         this.program = parentProgram
             .command('endorse')

@@ -12,10 +12,11 @@ class TipCommand {
     constructor(configService) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
     }
     async execute(options) {
         try {
+            console.log(chalk_1.default.gray(`💰 Sending tip to package '${options.name}'...`));
             logger_1.logger.info('Sending tip to package publisher', {
                 name: options.name,
                 amount: options.amount
@@ -25,30 +26,57 @@ class TipCommand {
                 this.config.getWallet(options.wallet) :
                 this.config.getDefaultWallet();
             if (!wallet || !wallet.privateKey) {
-                throw new Error('No wallet configured. Please run init first.');
+                console.log(chalk_1.default.red('✗ No wallet configured'));
+                console.log(chalk_1.default.gray('   Run "movr wallet create <name>" to create a wallet first'));
+                return;
             }
+            console.log(chalk_1.default.gray(`💳 Using wallet: ${wallet.name} (${wallet.address})`));
             // Create account from private key
             const account = this.blockchain.createAccountFromPrivateKey(wallet.privateKey);
             // Get package info to get latest version if not specified
+            console.log(chalk_1.default.gray('🔍 Fetching package information...'));
             const packageInfo = await this.blockchain.getPackageMetadata(options.name);
             if (!packageInfo) {
-                throw new Error(`Package ${options.name} not found`);
+                console.log(chalk_1.default.red(`✗ Package '${options.name}' not found`));
+                console.log(chalk_1.default.gray('   Use "movr search" to find available packages'));
+                return;
+            }
+            const version = options.version || packageInfo.version;
+            console.log(chalk_1.default.green(`✅ Found package: ${packageInfo.name} v${version}`));
+            // Check balance
+            const balance = await this.blockchain.getAccountBalance(account.accountAddress.toString());
+            const tipAmount = options.amount * 100000000; // Convert APT to octas (1 APT = 100000000 octas)
+            const balanceInAPT = this.blockchain.formatToAPT(balance);
+            console.log(chalk_1.default.gray(`💰 Current balance: ${balanceInAPT} APT`));
+            console.log(chalk_1.default.gray(`💸 Tip amount: ${options.amount} APT`));
+            if (balance < tipAmount) {
+                console.log(chalk_1.default.red('✗ Insufficient balance for tip'));
+                console.log(chalk_1.default.gray(`   You need at least ${options.amount} APT to send this tip`));
+                return;
             }
             // Send tip
-            const result = await this.blockchain.tipPackage(account, options.name, options.version || packageInfo.version, options.amount);
+            console.log(chalk_1.default.gray('📤 Sending tip transaction...'));
+            const result = await this.blockchain.tipPackage(account, options.name, version, options.amount);
             if (result.success) {
-                logger_1.logger.info(chalk_1.default.green('✓') + ' Tip sent successfully!');
-                logger_1.logger.info('Transaction hash:', chalk_1.default.gray(result.transactionHash));
-                logger_1.logger.info('Amount:', chalk_1.default.yellow(`${options.amount} APT`));
+                console.log(chalk_1.default.green('✅ Tip sent successfully!'));
+                console.log(chalk_1.default.gray(`   Transaction hash: ${result.transactionHash}`));
+                console.log(chalk_1.default.gray(`   Amount: ${options.amount} APT`));
+                console.log(chalk_1.default.gray(`   Package: ${options.name} v${version}`));
             }
             else {
+                console.log(chalk_1.default.red('✗ Failed to send tip'));
+                if (result.vmStatus) {
+                    console.log(chalk_1.default.gray(`   ${result.vmStatus}`));
+                }
                 logger_1.logger.error('Failed to send tip', { vmStatus: result.vmStatus });
-                throw new Error(`Failed to send tip: ${result.vmStatus}`);
             }
         }
         catch (error) {
+            console.log(chalk_1.default.red(`✗ Failed to send tip to '${options.name}'`));
             logger_1.logger.error('Failed to send tip', { error });
-            throw error;
+            if (error instanceof Error) {
+                console.log(chalk_1.default.gray(`   ${error.message}`));
+            }
         }
     }
 }

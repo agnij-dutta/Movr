@@ -5,8 +5,8 @@ import path from 'path';
 import archiver from 'archiver';
 import extractZip from 'extract-zip';
 import { createReadStream, createWriteStream } from 'fs';
-import { logger } from '../utils/logger';
-import { createIPFSError, createFileSystemError } from '../utils/errors';
+import { logger } from '../utils/logger.js';
+import { createIPFSError, createFileSystemError } from '../utils/errors.js';
 import { PinataSDK } from "pinata";
 
 export interface PinataConfig {
@@ -104,42 +104,67 @@ export class PinataIPFSService {
    * Upload a single file to IPFS
    */
   async uploadFile(filePath: string, metadata?: Record<string, any>): Promise<UploadResult> {
-    // Always use form-data approach for pkg compatibility
-    try {
-      logger.debug('Uploading file to IPFS', { filePath });
-      const formData = new FormData();
-      const fileStream = createReadStream(filePath);
-      const fileName = path.basename(filePath);
-      formData.append('file', fileStream, fileName);
-      if (metadata) {
-        formData.append('pinataMetadata', JSON.stringify({
-          name: metadata['name'] || 'json-content',
-          keyvalues: metadata,
-        }));
+    if (this.pinata) {
+      // Use Pinata SDK
+      try {
+        logger.debug('Uploading file to IPFS via Pinata SDK', { filePath });
+        const fileBuffer = await fs.readFile(filePath);
+        // Create a Blob-like object that Pinata SDK can accept
+        const file = new Blob([fileBuffer], { type: 'application/octet-stream' }) as any;
+        // Add the name property manually
+        file.name = path.basename(filePath);
+        const upload = await this.pinata.upload.public.file(file);
+        // Pinata SDK returns { cid, size, ... }
+        return {
+          ipfsHash: upload.cid,
+          pinSize: upload.size || fileBuffer.length,
+          timestamp: new Date().toISOString(),
+        };
+      } catch (error) {
+        logger.error('Failed to upload file via Pinata SDK', { filePath, error });
+        throw createIPFSError(
+          `Failed to upload file via Pinata SDK: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { filePath }
+        );
       }
-      const response = await this.client.post<PinataResponse>('/pinning/pinFileToIPFS', formData, {
-        headers: {
-          ...formData.getHeaders(),
-        },
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-      });
-      const result: UploadResult = {
-        ipfsHash: response.data.IpfsHash,
-        pinSize: response.data.PinSize,
-        timestamp: response.data.Timestamp,
-      };
-      logger.debug('File uploaded successfully', {
-        filePath,
-        ipfsHash: result.ipfsHash,
-      });
-      return result;
-    } catch (error) {
-      logger.error('Failed to upload file', { filePath, error });
-      throw createIPFSError(
-        `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        { filePath }
-      );
+    } else {
+      // Fallback to legacy Axios method
+      try {
+        logger.debug('Uploading file to IPFS (legacy)', { filePath });
+        const formData = new FormData();
+        const fileStream = createReadStream(filePath);
+        const fileName = path.basename(filePath);
+        formData.append('file', fileStream, fileName);
+        if (metadata) {
+          formData.append('pinataMetadata', JSON.stringify({
+            name: metadata['name'] || 'json-content',
+            keyvalues: metadata,
+          }));
+        }
+        const response = await this.client.post<PinataResponse>('/pinning/pinFileToIPFS', formData, {
+          headers: {
+            ...formData.getHeaders(),
+          },
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+        });
+        const result: UploadResult = {
+          ipfsHash: response.data.IpfsHash,
+          pinSize: response.data.PinSize,
+          timestamp: response.data.Timestamp,
+        };
+        logger.debug('File uploaded successfully', {
+          filePath,
+          ipfsHash: result.ipfsHash,
+        });
+        return result;
+      } catch (error) {
+        logger.error('Failed to upload file', { filePath, error });
+        throw createIPFSError(
+          `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { filePath }
+        );
+      }
     }
   }
 

@@ -4,7 +4,16 @@ export interface NetworkConfig {
     url: string;
     faucetUrl?: string;
 }
-export declare const NETWORKS: Record<AptosNetwork, NetworkConfig>;
+export declare const NETWORK_CONFIGS: {
+    readonly testnet: {
+        readonly url: "https://fullnode.testnet.aptoslabs.com/v1";
+        readonly faucetUrl: "https://faucet.testnet.aptoslabs.com";
+    };
+    readonly mainnet: {
+        readonly url: "https://fullnode.mainnet.aptoslabs.com/v1";
+        readonly faucetUrl: null;
+    };
+};
 export declare const APM_CONTRACT_ADDRESS = "0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34";
 export declare const APM_MODULE_NAME = "registry";
 export declare const PACKAGE_TYPE_LIBRARY = 0;

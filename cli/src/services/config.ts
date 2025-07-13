@@ -292,11 +292,6 @@ export class ConfigService {
       version: '1.0.0',
       currentNetwork: 'testnet',
       networks: {
-        devnet: {
-          name: 'devnet',
-          url: 'https://fullnode.devnet.aptoslabs.com/v1',
-          contractAddress: '0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34',
-        },
         testnet: {
           name: 'testnet',
           url: 'https://fullnode.testnet.aptoslabs.com/v1',

@@ -50,7 +50,7 @@ class PublishCommand {
     constructor(configService, parentProgram) {
         this.config = configService;
         const config = this.config.getConfig();
-        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.DEVNET);
+        this.blockchain = new blockchain_1.AptosBlockchainService(config.currentNetwork || ts_sdk_1.Network.TESTNET);
         // PinataIPFSService now supports JWT authentication if present in config
         this.ipfs = new ipfs_1.PinataIPFSService(config.ipfs);
         // Register command with Commander

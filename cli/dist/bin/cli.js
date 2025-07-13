@@ -16,6 +16,7 @@ const endorse_1 = require("../commands/endorse");
 const ipfs_1 = require("../commands/ipfs");
 const wallet_1 = require("../commands/wallet");
 const errors_1 = require("../utils/errors");
+const logger_1 = require("../utils/logger");
 const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables
 dotenv_1.default.config();
@@ -31,18 +32,44 @@ async function main() {
     `));
         console.log(chalk_1.default.gray(`movr v${CLI_VERSION}`));
         console.log(chalk_1.default.gray('The Move Package Manager with IPFS integration\n'));
+        // Initialize config service
+        const configService = new config_1.ConfigService();
+        await configService.initialize();
+        // Create main program
         const program = new commander_1.Command();
         program
             .name('movr')
             .description('movr - The Move Package Manager with IPFS')
             .version(CLI_VERSION);
         // Global options
-        program.option('-n, --network <network>', 'Network to use (mainnet, testnet, devnet)');
-        program.option('-b, --verbose', 'Enable verbose logging');
-        // Initialize config service
-        const configService = new config_1.ConfigService();
-        await configService.initialize();
-        // Initialize commands
+        program.option('-n, --network <network>', 'Network to use (mainnet, testnet)', 'testnet');
+        program.option('-v, --verbose', 'Enable verbose logging');
+        // Parse arguments to extract global options before command execution
+        const originalArgv = [...process.argv];
+        const tempProgram = new commander_1.Command();
+        tempProgram.option('-n, --network <network>', 'Network to use (mainnet, testnet)', 'testnet');
+        tempProgram.option('-v, --verbose', 'Enable verbose logging');
+        tempProgram.allowUnknownOption(true);
+        tempProgram.parse(originalArgv, { from: 'node' });
+        const globalOptions = tempProgram.opts();
+        // Set verbose logging if requested
+        if (globalOptions.verbose) {
+            (0, logger_1.setVerboseLogging)(true);
+            logger_1.logger.info('Verbose logging enabled');
+        }
+        // Set network if specified
+        if (globalOptions.network && globalOptions.network !== configService.getConfig().currentNetwork) {
+            await configService.setCurrentNetwork(globalOptions.network);
+            logger_1.logger.info(`Switched to network: ${globalOptions.network}`);
+        }
+        // Ensure we're using testnet by default
+        const currentNetwork = configService.getConfig().currentNetwork;
+        if (currentNetwork !== 'testnet' && !globalOptions.network) {
+            await configService.setCurrentNetwork('testnet');
+            logger_1.logger.info('Defaulting to testnet network');
+        }
+        logger_1.logger.info(`Using network: ${configService.getConfig().currentNetwork}`);
+        // Initialize commands with the main program
         new init_1.InitCommand(configService, program);
         new publish_1.PublishCommand(configService, program);
         new install_1.InstallCommand(configService, program);
@@ -50,7 +77,8 @@ async function main() {
         new endorse_1.EndorseCommand(configService, program);
         new ipfs_1.IPFSCommand(configService, program);
         new wallet_1.WalletCommand(configService, program);
-        await program.parseAsync(process.argv);
+        // Parse and execute commands with original arguments
+        await program.parseAsync(originalArgv);
     }
     catch (error) {
         await errors_1.errorHandler.handleError(error instanceof Error ? error : new Error(String(error)));

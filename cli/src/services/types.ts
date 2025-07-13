@@ -8,26 +8,16 @@ export interface NetworkConfig {
   faucetUrl?: string;
 }
 
-export const NETWORKS: Record<AptosNetwork, NetworkConfig> = {
-  [AptosNetwork.DEVNET]: {
-    url: 'https://fullnode.devnet.aptoslabs.com/v1',
-    faucetUrl: 'https://faucet.devnet.aptoslabs.com'
-  },
+export const NETWORK_CONFIGS = {
   [AptosNetwork.TESTNET]: {
     url: 'https://fullnode.testnet.aptoslabs.com/v1',
     faucetUrl: 'https://faucet.testnet.aptoslabs.com'
   },
   [AptosNetwork.MAINNET]: {
-    url: 'https://fullnode.mainnet.aptoslabs.com/v1'
-  },
-  [AptosNetwork.LOCAL]: {
-    url: 'http://localhost:8080/v1',
-    faucetUrl: 'http://localhost:8081'
-  },
-  [AptosNetwork.CUSTOM]: {
-    url: ''
+    url: 'https://fullnode.mainnet.aptoslabs.com/v1',
+    faucetUrl: null
   }
-};
+} as const;
 
 // Contract constants
 export const APM_CONTRACT_ADDRESS = '0xba495e6bb22cdbdf25d0be1dd900eb508e3132598d87b3d98ae705cae36aba34';

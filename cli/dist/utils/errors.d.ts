@@ -1,6 +1,6 @@
 export declare enum ErrorType {
-    OPERATIONAL = "OPERATIONAL",
-    PROGRAMMER = "PROGRAMMER"
+    PROGRAMMING = "PROGRAMMING",
+    OPERATIONAL = "OPERATIONAL"
 }
 export declare enum ErrorCode {
     NETWORK_ERROR = "NETWORK_ERROR",
@@ -50,6 +50,7 @@ export declare class InvalidPackageError extends AppError {
 export declare class ErrorHandler {
     handleError(error: Error): Promise<void>;
     isTrustedError(error: Error): boolean;
+    private displayUserFriendlyError;
     private logError;
     private fireMonitoringMetric;
 }
