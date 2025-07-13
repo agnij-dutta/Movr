@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-# Always use v1.2.0 release
-VERSION="v1.2.0"
+# Always use v1.2.2 release
+VERSION="v1.2.2"
 
 GITHUB_REPO="agnij-dutta/Movr"
 
